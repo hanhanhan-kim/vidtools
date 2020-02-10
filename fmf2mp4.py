@@ -5,6 +5,7 @@ import skimage.io
 import tqdm
 import os
 import glob
+import sys
 from ffmpy import FFmpeg
 
 
@@ -128,12 +129,14 @@ def tiff2mp4 (names):
         ff.run()
 
 
-def main():
+#----------------------------------------------------------------------------------
+if __name__ == "__main__":
+
     # Specify the absolute path that has the .fmf files:
-    vid_path = '/home/platyusa/Videos/calib_2/'
+    vid_path = sys.argv[1]
 
     # Get the list of .fmf files to be converted:
-    names = sorted(glob.glob(vid_path + '*.fmf'))
+    names = sorted(glob.glob(vid_path + '/*.fmf'))
 
     # Convert:
     mkdirs4tiffs(names)
@@ -141,6 +144,3 @@ def main():
     fmf2tiff(names)
     tiff2mp4(names)
 
-
-if __name__ == "__main__":
-    main()
