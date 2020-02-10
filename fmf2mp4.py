@@ -1,15 +1,11 @@
+#!/home/platyusa/.virtualenvs/cinema/bin/python
+
 import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 import skimage.io 
 import tqdm
 import os
 import glob
 from ffmpy import FFmpeg
-
-# Specify the absolute path that has the .fmf files:
-vid_path = '/data2/HK20190516/top/'
-
-# Get the list of .fmf files to be converted:
-names = sorted(glob.glob(vid_path + '*.fmf'))
 
 
 def mkdirs4tiffs (names):
@@ -62,6 +58,7 @@ def get_FrameRate_TimeLength (names):
     
         print(str(frameRate)+ ' is frame rate and ' + str(timeLen) + ' is length of video (s)')
 
+
 def fmf2tiff (names):
     
     '''
@@ -86,13 +83,14 @@ def fmf2tiff (names):
         fmf = fmfs[names.index(name)]
         # For each fmf, convert it to a series of .tiffs and store the series in its respective directory:
         i = 0
-        for im in tqdm.tqdm_notebook(range(len(fmf.get_all_timestamps()))):
+        for im in tqdm.tqdm(range(len(fmf.get_all_timestamps()))):
             skimage.io.imsave(arr=fmf.get_frame(i)[0], fname=name.replace('.fmf','') + '/' +
                           str(format(i, '08d')) + '.tiff')
             i += 1
 
 
 def tiff2mp4 (names):
+    
     '''
     Converts .tiffs located in a directory into an .mp4 file. Can batch process multiple directories of .tiffs into multiple respective .mp4 files.
     
@@ -129,3 +127,20 @@ def tiff2mp4 (names):
         )
         ff.run()
 
+
+def main():
+    # Specify the absolute path that has the .fmf files:
+    vid_path = '/home/platyusa/Videos/calib_2/'
+
+    # Get the list of .fmf files to be converted:
+    names = sorted(glob.glob(vid_path + '*.fmf'))
+
+    # Convert:
+    mkdirs4tiffs(names)
+    get_FrameRate_TimeLength(names)
+    fmf2tiff(names)
+    tiff2mp4(names)
+
+
+if __name__ == "__main__":
+    main()
