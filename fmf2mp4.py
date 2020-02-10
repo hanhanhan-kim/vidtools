@@ -4,6 +4,7 @@ import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 import skimage.io 
 import tqdm
 import os
+import shutil
 import glob
 import sys
 from ffmpy import FFmpeg
@@ -26,7 +27,13 @@ def mkdirs4tiffs (names):
 
     # Make the directories:
     for folder in folders:
-        os.mkdir(os.path.join(folder))
+        # Check if the directory exists already:
+        isDir = os.path.isdir(folder)
+        if not isDir:
+            os.mkdir(os.path.join(folder))
+        else:
+            print("Directory already exists")
+            continue
 
 
 def get_FrameRate_TimeLength (names):
@@ -83,6 +90,7 @@ def fmf2tiff (names):
         # Get an fmf from the fmfs:
         fmf = fmfs[names.index(name)]
         # For each fmf, convert it to a series of .tiffs and store the series in its respective directory:
+        print("Converting .fmf video to .tiff files ...")
         i = 0
         for im in tqdm.tqdm(range(len(fmf.get_all_timestamps()))):
             skimage.io.imsave(arr=fmf.get_frame(i)[0], fname=name.replace('.fmf','') + '/' +
@@ -90,13 +98,14 @@ def fmf2tiff (names):
             i += 1
 
 
-def tiff2mp4 (names):
+def tiff2mp4 (names, remove_tiffs):
     
     '''
     Converts .tiffs located in a directory into an .mp4 file. Can batch process multiple directories of .tiffs into multiple respective .mp4 files.
     
     Paramters:
     names (list): a list of the .fmf files to be converted.
+    remove_tiffs (bool): a flag to delete directories containing the input tiff files, after conversion
     
     Returns:
     .mp4 files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
@@ -128,6 +137,21 @@ def tiff2mp4 (names):
         )
         ff.run()
 
+        # Remove folders containing tiffs, based on flag:
+        if remove_tiffs == "true":
+
+            os.chdir(name.replace(".fmf",""))
+
+            if all (glob.glob(name.replace(".fmf",".tiff"))) is True:
+                shutil.rmtree(name.replace(".fmf",""))
+                os.chdir("..")
+            else:
+                print("No .tiff files in this directory")
+        
+        else:
+            print("Remove .tiffs flag is false")
+            continue
+
 
 #----------------------------------------------------------------------------------
 if __name__ == "__main__":
@@ -135,12 +159,15 @@ if __name__ == "__main__":
     # Specify the absolute path that has the .fmf files:
     vid_path = sys.argv[1]
 
+    # Specify remove_tiffs flag:
+    remove_tiffs = sys.argv[2].lower()
+
     # Get the list of .fmf files to be converted:
-    names = sorted(glob.glob(vid_path + '/*.fmf'))
+    names = sorted(glob.glob(vid_path + '*.fmf'))
 
     # Convert:
     mkdirs4tiffs(names)
     get_FrameRate_TimeLength(names)
     fmf2tiff(names)
-    tiff2mp4(names)
+    tiff2mp4(names, remove_tiffs)
 
