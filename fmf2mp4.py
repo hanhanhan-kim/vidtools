@@ -105,7 +105,7 @@ def tiff2mp4 (names, remove_tiffs):
     
     Paramters:
     names (list): a list of the .fmf files to be converted.
-    remove_tiffs (bool): a flag to delete directories containing the input tiff files, after conversion
+    remove_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
     
     Returns:
     .mp4 files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
