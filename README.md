@@ -12,7 +12,7 @@ cycler==0.10.0
 decorator==4.4.1
 defusedxml==0.6.0
 entrypoints==0.3
-ffmpy==0.2.2
+**ffmpy==0.2.2**
 imageio==2.6.1
 importlib-metadata==1.5.0
 ipykernel==5.1.4
@@ -30,7 +30,7 @@ kiwisolver==1.1.0
 MarkupSafe==1.1.1
 matplotlib==3.1.2
 mistune==0.8.4
-motmot.FlyMovieFormat==1.8
+**motmot.FlyMovieFormat==1.8**
 nbconvert==5.6.1
 nbformat==5.0.4
 networkx==2.4
@@ -53,14 +53,14 @@ pytz==2019.3
 PyWavelets==1.1.1
 pyzmq==18.1.1
 qtconsole==4.6.0
-scikit-image==0.16.2
+**scikit-image==0.16.2**
 scipy==1.4.1
 Send2Trash==1.5.0
 six==1.14.0
 terminado==0.8.3
 testpath==0.4.4
 tornado==6.0.3
-tqdm==4.42.1
+**tqdm==4.42.1**
 traitlets==4.3.3
 wcwidth==0.1.8
 webencodings==0.5.1
