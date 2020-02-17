@@ -98,14 +98,14 @@ def fmf2tiff (names):
             i += 1
 
 
-def tiff2mp4 (names, remove_tiffs):
+def tiff2mp4 (names, save_tiffs="false"):
     
     '''
     Converts .tiffs located in a directory into an .mp4 file. Can batch process multiple directories of .tiffs into multiple respective .mp4 files.
     
     Paramters:
     names (list): a list of the .fmf files to be converted.
-    remove_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
+    save_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
     
     Returns:
     .mp4 files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
@@ -138,7 +138,7 @@ def tiff2mp4 (names, remove_tiffs):
         ff.run()
 
         # Remove folders containing tiffs, based on flag:
-        if remove_tiffs == "true":
+        if save_tiffs == "false":
 
             os.chdir(name.replace(".fmf",""))
 
@@ -159,8 +159,8 @@ if __name__ == "__main__":
     # Specify the absolute path that has the .fmf files:
     vid_path = sys.argv[1]
 
-    # Specify remove_tiffs flag:
-    remove_tiffs = sys.argv[2].lower()
+    # Specify save_tiffs flag:
+    save_tiffs = sys.argv[2].lower()
 
     # Get the list of .fmf files to be converted:
     names = sorted(glob.glob(vid_path + '*.fmf'))
@@ -169,5 +169,4 @@ if __name__ == "__main__":
     mkdirs4tiffs(names)
     get_FrameRate_TimeLength(names)
     fmf2tiff(names)
-    tiff2mp4(names, remove_tiffs)
-
+    tiff2mp4(names, save_tiffs)
