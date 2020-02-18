@@ -98,7 +98,7 @@ def fmf2tiff (names):
             i += 1
 
 
-def tiff2mp4 (names, save_tiffs="false"):
+def tiff2mp4 (names, save_tiffs):
     
     '''
     Converts .tiffs located in a directory into an .mp4 file. Can batch process multiple directories of .tiffs into multiple respective .mp4 files.
