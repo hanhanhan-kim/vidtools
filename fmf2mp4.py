@@ -133,7 +133,7 @@ def tiff2mp4 (names, save_tiffs):
         
         ff = FFmpeg(
             inputs={inPaths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
-            outputs={outPaths[names.index(name)]: '-crf 25 -pix_fmt yuv420p'}
+            outputs={outPaths[names.index(name)]: '-crf 0 -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
         )
         ff.run()
 
