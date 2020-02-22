@@ -1,4 +1,4 @@
-#!/home/platyusa/.virtualenvs/cinema/bin/python
+#!/home/hank-x299/anaconda3/envs/cinema/bin/python
 
 import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 import skimage.io 
@@ -149,6 +149,61 @@ def tiff2mp4 (names, save_tiffs):
                 print("No .tiff files in this directory")
         
         else:
+            print("Save .tiffs flag is true")
+            continue
+
+
+def tiff2avi (names, save_tiffs):
+    
+    '''
+    Converts .tiffs located in a directory into an .avi file. Can batch process multiple directories of .tiffs into multiple respective .avi files.
+    
+    Paramters:
+    names (list): a list of the .fmf files to be converted.
+    save_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
+    
+    Returns:
+    .avi files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
+    
+    '''
+    
+    inPaths = []
+    outPaths = []
+    
+    fmfs = []
+    
+    for name in names:
+        
+        # Compute the exact frame rate of each video to input into the FFmpeg conversions
+        fmfs.append(FMF.FlyMovie(name))
+        fmf = fmfs[names.index(name)]
+        vidSize = fmf.get_n_frames()
+        tmStmps = fmf.get_all_timestamps()
+        timeLen = tmStmps[-1] - tmStmps[0]
+        frameRate = vidSize/timeLen
+        
+        # FFmpeg conversions
+        inPaths.append(name.replace('.fmf','/%08d.tiff'))
+        outPaths.append(name.replace('.fmf','.avi'))
+        
+        ff = FFmpeg(
+            inputs={inPaths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
+            outputs={outPaths[names.index(name)]: '-c:v libx264 -crf 0 -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
+        )
+        ff.run()
+
+        # Remove folders containing tiffs, based on flag:
+        if save_tiffs == "false":
+
+            os.chdir(name.replace(".fmf",""))
+
+            if all (glob.glob(name.replace(".fmf",".tiff"))) is True:
+                shutil.rmtree(name.replace(".fmf",""))
+                os.chdir("..")
+            else:
+                print("No .tiff files in this directory")
+        
+        else:
             print("Remove .tiffs flag is false")
             continue
 
@@ -169,4 +224,9 @@ if __name__ == "__main__":
     mkdirs4tiffs(names)
     get_FrameRate_TimeLength(names)
     fmf2tiff(names)
-    tiff2mp4(names, save_tiffs)
+
+    # Specify output to .mp4 or .avi:
+    if sys.argv[3].lower() == "mp4":
+        tiff2mp4(names, save_tiffs)
+    elif sys.argv[3].lower() == "avi":
+        tiff2avi(names, save_tiffs)
