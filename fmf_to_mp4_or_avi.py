@@ -98,7 +98,7 @@ def fmf2tiff (names):
             i += 1
 
 
-def tiff2mp4 (names, save_tiffs):
+def tiff2mp4 (names, save_tiffs, crf):
     
     '''
     Converts .tiffs located in a directory into an .mp4 file. Can batch process multiple directories of .tiffs into multiple respective .mp4 files.
@@ -106,6 +106,7 @@ def tiff2mp4 (names, save_tiffs):
     Paramters:
     names (list): a list of the .fmf files to be converted.
     save_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
+    crf (int): the constant rate factor for video compression, ranging from 0, the least compressed, to 51, the most compressed. 
     
     Returns:
     .mp4 files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
@@ -133,7 +134,7 @@ def tiff2mp4 (names, save_tiffs):
         
         ff = FFmpeg(
             inputs={inPaths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
-            outputs={outPaths[names.index(name)]: '-crf 0 -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
+            outputs={outPaths[names.index(name)]: '-crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
         )
         ff.run()
 
@@ -153,7 +154,7 @@ def tiff2mp4 (names, save_tiffs):
             continue
 
 
-def tiff2avi (names, save_tiffs):
+def tiff2avi (names, save_tiffs, crf):
     
     '''
     Converts .tiffs located in a directory into an .avi file. Can batch process multiple directories of .tiffs into multiple respective .avi files.
@@ -161,6 +162,7 @@ def tiff2avi (names, save_tiffs):
     Paramters:
     names (list): a list of the .fmf files to be converted.
     save_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
+    crf (int): the constant rate factor for video compression, ranging from 0, the least compressed, to 51, the most compressed. 
     
     Returns:
     .avi files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
@@ -188,7 +190,7 @@ def tiff2avi (names, save_tiffs):
         
         ff = FFmpeg(
             inputs={inPaths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
-            outputs={outPaths[names.index(name)]: '-c:v libx264 -crf 0 -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
+            outputs={outPaths[names.index(name)]: '-c:v libx264 -crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
         )
         ff.run()
 
@@ -214,19 +216,36 @@ if __name__ == "__main__":
     # Specify the absolute path that has the .fmf files:
     vid_path = sys.argv[1]
 
-    # Specify save_tiffs flag:
-    save_tiffs = sys.argv[2].lower()
+    # If all arguments are specified, use them:
+    if len(sys.argv) >= 5:
 
+        # Specify save_tiffs flag and output type:
+        save_tiffs = sys.argv[2].lower()
+        output_type = sys.argv[3].lower()
+        crf = str(sys.argv[4])
+    
+    # If not all arguments are specified, use these defaults:
+    else:
+        save_tiffs = "false"
+        output_type = "avi"
+        crf = 0
+        
     # Get the list of .fmf files to be converted:
-    names = sorted(glob.glob(vid_path + '*.fmf'))
+    if vid_path.endswith("/"):
+        names = sorted(glob.glob(vid_path + "*.fmf"))
+    else:
+        names = sorted(glob.glob(vid_path + "/*.fmf"))
 
     # Convert:
     mkdirs4tiffs(names)
     get_FrameRate_TimeLength(names)
     fmf2tiff(names)
 
-    # Specify output to .mp4 or .avi:
-    if sys.argv[3].lower() == "mp4":
-        tiff2mp4(names, save_tiffs)
-    elif sys.argv[3].lower() == "avi":
-        tiff2avi(names, save_tiffs)
+    # Convert to either .mp4 or .avi:
+    if output_type == "mp4":
+        tiff2mp4(names, save_tiffs, crf)
+    elif output_type == "avi":
+        tiff2avi(names, save_tiffs, crf)
+
+    
+    
