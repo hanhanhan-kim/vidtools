@@ -1,4 +1,4 @@
-#!/home/platyusa/.virtualenvs/cinema/bin/python
+#!/home/hank-x299/anaconda3/envs/cinema/bin/python
 
 # Written by Will Dickson
 
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     else:
         scale = 1.0
     basename, extname = os.path.splitext(moviefile)
-    outfile = 'converted_{}.{}'.format(basename, 'avi')
+    outfile = '{}_converted.{}'.format(basename, 'avi')
     convert_bias_mjpg(indexfile, moviefile, outfile, scale=scale)
 
 
