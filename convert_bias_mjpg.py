@@ -2,6 +2,9 @@
 
 # Written by Will Dickson
 
+# Cannot convert to true frame rate for videos captured at speeds greater than 65 Hz.
+# If captured at 65+ Hz, convert to a slower speed, then speed up afterwards. 
+
 from __future__ import print_function
 import os
 import sys
@@ -46,7 +49,7 @@ def get_framerate(index_list, num_avg=10):
 def convert_bias_mjpg(bias_indexfile, bias_moviefile, outfile, scale=1.0):
     index_list = read_indexfile(bias_indexfile)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    framerate = get_framerate(index_list) 
+    framerate = get_framerate(index_list) # can hardcode here if greater than 65 Hz
     vid = None
     with open(bias_moviefile,'rb') as f:
         for i, index_item in enumerate(index_list):
@@ -79,6 +82,7 @@ if __name__ == '__main__':
         scale = 1.0
     basename, extname = os.path.splitext(moviefile)
     outfile = '{}_converted.{}'.format(basename, 'avi')
+    import ipdb; ipdb.set_trace()
     convert_bias_mjpg(indexfile, moviefile, outfile, scale=scale)
 
 
