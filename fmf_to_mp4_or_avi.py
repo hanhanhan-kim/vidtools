@@ -1,4 +1,4 @@
-#!/home/hank-x299/anaconda3/envs/cinema/bin/python
+#!/usr/bin/env python3
 
 import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 import skimage.io 

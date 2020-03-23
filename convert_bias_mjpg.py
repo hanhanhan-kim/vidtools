@@ -1,4 +1,4 @@
-#!/home/hank-x299/anaconda3/envs/cinema/bin/python
+#!/usr/bin/python3
 
 # Written by Will Dickson
 
@@ -82,7 +82,6 @@ if __name__ == '__main__':
         scale = 1.0
     basename, extname = os.path.splitext(moviefile)
     outfile = '{}_converted.{}'.format(basename, 'avi')
-    import ipdb; ipdb.set_trace()
     convert_bias_mjpg(indexfile, moviefile, outfile, scale=scale)
 
 
