@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 
-import motmot.FlyMovieFormat.FlyMovieFormat as FMF
+"""
+Convert raw .fmf videos to compressed and viewable .avi or .mp4 video files.
+The .fmf video is converted to an uncompressed directory of .tiff files, \
+before being compressed to the .avi or .mp4. 
+"""
+
 import skimage.io 
 import tqdm
 import os
 import shutil
 import glob
 import sys
+import argparse
+
+import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 from ffmpy import FFmpeg
 
 
@@ -113,8 +121,8 @@ def tiff2mp4 (names, save_tiffs, crf):
     
     '''
     
-    inPaths = []
-    outPaths = []
+    in_paths = []
+    out_paths = []
     
     fmfs = []
     
@@ -129,12 +137,12 @@ def tiff2mp4 (names, save_tiffs, crf):
         frameRate = vidSize/timeLen
         
         # FFmpeg conversions
-        inPaths.append(name.replace('.fmf','/%08d.tiff'))
-        outPaths.append(name.replace('.fmf','.mp4'))
+        in_paths.append(name.replace('.fmf','/%08d.tiff'))
+        out_paths.append(name.replace('.fmf','.mp4'))
         
         ff = FFmpeg(
-            inputs={inPaths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
-            outputs={outPaths[names.index(name)]: '-crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
+            inputs={in_paths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
+            outputs={out_paths[names.index(name)]: '-crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
         )
         ff.run()
 
@@ -169,8 +177,10 @@ def tiff2avi (names, save_tiffs, crf):
     
     '''
     
-    inPaths = []
-    outPaths = []
+    assert (0 <= crf <= 51), "crf is not an int between 0 and 51."
+
+    in_paths = []
+    out_paths = []
     
     fmfs = []
     
@@ -185,12 +195,12 @@ def tiff2avi (names, save_tiffs, crf):
         frameRate = vidSize/timeLen
         
         # FFmpeg conversions
-        inPaths.append(name.replace('.fmf','/%08d.tiff'))
-        outPaths.append(name.replace('.fmf','.avi'))
+        in_paths.append(name.replace('.fmf','/%08d.tiff'))
+        out_paths.append(name.replace('.fmf','.avi'))
         
         ff = FFmpeg(
-            inputs={inPaths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
-            outputs={outPaths[names.index(name)]: '-c:v libx264 -crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
+            inputs={in_paths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
+            outputs={out_paths[names.index(name)]: '-c:v libx264 -crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
         )
         ff.run()
 
@@ -210,31 +220,52 @@ def tiff2avi (names, save_tiffs, crf):
             continue
 
 
-#----------------------------------------------------------------------------------
-if __name__ == "__main__":
+def main():
 
-    # Specify the absolute path that has the .fmf files:
-    vid_path = sys.argv[1]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("vid_path",
+        help="Absolute path to the directory that houses the .fmf videos\
+            E.g.'/mnt/2TB/data_in/vids/'")
+    parser.add_argument("output_type", nargs="?", default="avi",
+        help="The compressed video output type. Accepts either 'avi' or 'mp4'.\
+            Default is 'avi'")
+    parser.add_argument("crf", nargs="?", type=int, default=0,
+        help="The 'constant rate factor' for the FFmpeg conversion from uncompressed\
+             .tiffs to compressed .avi or .mp4. Ranges from 0 to 51, where 0 is most\
+             lossless and 51 is most compressed. Default is 0.")
+    parser.add_argument("-t","--tiffs", action="store_true", default=False,
+        help="If enabled, a directory of uncompressed .tiffs from\
+            the .fmf file is retained. Default is false.")
+    args = parser.parse_args()
 
-    # If all arguments are specified, use them:
-    if len(sys.argv) >= 5:
+    vid_path = args.vid_path
+    output_type = args.output_type
+    crf = args.crf
+    save_tiffs = args.tiffs
 
-        # Specify save_tiffs flag and output type:
-        save_tiffs = sys.argv[2].lower()
-        output_type = sys.argv[3].lower()
-        crf = str(sys.argv[4])
+    # vid_path = sys.argv[1]
+    # # If all arguments are specified, use them:
+    # if len(sys.argv) >= 5:
+
+    #     # Specify save_tiffs flag and output type:
+    #     save_tiffs = sys.argv[2].lower()
+    #     output_type = sys.argv[3].lower()
+    #     crf = str(sys.argv[4])
     
-    # If not all arguments are specified, use these defaults:
-    else:
-        save_tiffs = "false"
-        output_type = "avi"
-        crf = 0
+    # # If not all arguments are specified, use these defaults:
+    # else:
+    #     save_tiffs = "false"
+    #     output_type = "avi"
+    #     crf = 0
         
     # Get the list of .fmf files to be converted:
     if vid_path.endswith("/"):
         names = sorted(glob.glob(vid_path + "*.fmf"))
     else:
         names = sorted(glob.glob(vid_path + "/*.fmf"))
+
+    assert (names), \
+        f"The directory, {vid_path}, is empty. Are you sure you specified a directory?"
 
     # Convert:
     mkdirs4tiffs(names)
@@ -247,5 +278,6 @@ if __name__ == "__main__":
     elif output_type == "avi":
         tiff2avi(names, save_tiffs, crf)
 
-    
-    
+
+if __name__ == "__main__":
+    main()
