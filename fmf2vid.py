@@ -242,21 +242,6 @@ def main():
     output_type = args.output_type
     crf = args.crf
     save_tiffs = args.tiffs
-
-    # vid_path = sys.argv[1]
-    # # If all arguments are specified, use them:
-    # if len(sys.argv) >= 5:
-
-    #     # Specify save_tiffs flag and output type:
-    #     save_tiffs = sys.argv[2].lower()
-    #     output_type = sys.argv[3].lower()
-    #     crf = str(sys.argv[4])
-    
-    # # If not all arguments are specified, use these defaults:
-    # else:
-    #     save_tiffs = "false"
-    #     output_type = "avi"
-    #     crf = 0
         
     # Get the list of .fmf files to be converted:
     if vid_path.endswith("/"):
