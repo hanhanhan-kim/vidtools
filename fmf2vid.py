@@ -18,6 +18,8 @@ import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 from ffmpy import FFmpeg
 
 
+# TODO: add assertions to fxns to check that things are not empty
+
 def mkdirs4tiffs (names):
     '''
     Makes an empty directory for each .fmf video. 
@@ -44,7 +46,7 @@ def mkdirs4tiffs (names):
             continue
 
 
-def get_FrameRate_TimeLength (names):
+def get_framerate_duration (names):
     '''
     Get the frame rate and length of video (secs) from a list of .fmf videos.
     
@@ -254,7 +256,7 @@ def main():
 
     # Convert:
     mkdirs4tiffs(names)
-    get_FrameRate_TimeLength(names)
+    get_framerate_duration(names)
     fmf2tiff(names)
 
     # Convert to either .mp4 or .avi:
