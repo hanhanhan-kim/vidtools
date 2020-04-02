@@ -2,11 +2,11 @@
 Utilities for working with videos acquired with machine vision cameras
 
 ## Dependencies:
-Using `Python 3.8.1`.
+Using `Python 3.7.7`.
 In order to run `fmf_to_mp4_or_avi.py`, set up an Anaconda environment with the following installs:
 
 ```
-conda install ffmpeg
+conda install opencv
 conda install scikt-image
 conda install tqdm
 pip install motmot.FlyMovieFormat
@@ -16,7 +16,8 @@ pip install ffmpy
 The version numbers of the above dependencies as of 2020/03/22:
 
 <pre>
-    - <b>ffmpeg==4.2</b>
+    - <b>opencv==3.4.2</b>
+    - <b>ffmpeg==4.0</b>
     - <b>ffmpy==0.2.2</b>
     - <b>motmot-flymovieformat==1.8</b>
     - <b>scikit-image==0.16.2</b>
