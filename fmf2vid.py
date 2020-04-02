@@ -21,6 +21,7 @@ from ffmpy import FFmpeg
 # TODO: add assertions to fxns to check that things are not empty
 
 def mkdirs4tiffs (names):
+
     '''
     Makes an empty directory for each .fmf video. 
     
@@ -30,6 +31,13 @@ def mkdirs4tiffs (names):
     Returns:
     Empty directories for each .fmf video. Can undo in terminal by navigating to `vid_path` and executing `rm -r */` 
     '''
+    
+    assert (names),\
+        "You've inputted an empty list. Please provide a populated list."
+    for name in names:
+        assert(".fmf" in name),\
+            f"The file {name} is not an .fmf video. Please provide an .fmf file."
+
     # Each directory will have the same name as the .fmf video:
     folders = []
     for name in names:
@@ -47,6 +55,7 @@ def mkdirs4tiffs (names):
 
 
 def get_framerate_duration (names):
+
     '''
     Get the frame rate and length of video (secs) from a list of .fmf videos.
     
@@ -56,8 +65,14 @@ def get_framerate_duration (names):
     Returns:
     Empty directories for each .fmf video. Can undo in terminal by navigating to `vid_path` and executing `rm -r */` 
     '''
+
+    assert (names),\
+        "You've inputted an empty list. Please provide a populated list."
+    for name in names:
+        assert(".fmf" in name),\
+            f"The file {name} is not an .fmf video. Please provide an .fmf file."
+
     fmfs = []
-    
     for name in names:
         
         # Make a list of fmf objects:
@@ -89,6 +104,12 @@ def fmf2tiff (names):
     A directory of .tiff files, where each directory corresponds to an .fmf object. Can undo in terminal by navigating to `vid_path` and executing `rm -r */`
     
     '''
+
+    assert (names),\
+        "You've inputted an empty list. Please provide a populated list."
+    for name in names:
+        assert(".fmf" in name),\
+            f"The file {name} is not an .fmf video. Please provide an .fmf file."
     
     fmfs = []
     
@@ -103,8 +124,9 @@ def fmf2tiff (names):
         print("Converting .fmf video to .tiff files ...")
         i = 0
         for im in tqdm.tqdm(range(len(fmf.get_all_timestamps()))):
-            skimage.io.imsave(arr=fmf.get_frame(i)[0], fname=name.replace('.fmf','') + '/' +
-                          str(format(i, '08d')) + '.tiff')
+            skimage.io.imsave(arr=fmf.get_frame(i)[0], 
+                              fname=name.replace('.fmf','') + '/' +
+                                    str(format(i, '08d')) + '.tiff')
             i += 1
 
 
@@ -122,6 +144,13 @@ def tiff2mp4 (names, save_tiffs, crf):
     .mp4 files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
     
     '''
+
+    assert (0 <= crf <= 51), "crf is not an int between 0 and 51."
+    assert (names),\
+        "You've inputted an empty list. Please provide a populated list."
+    for name in names:
+        assert(".fmf" in name),\
+            f"The file {name} is not an .fmf video. Please provide an .fmf file."
     
     in_paths = []
     out_paths = []
@@ -180,6 +209,11 @@ def tiff2avi (names, save_tiffs, crf):
     '''
     
     assert (0 <= crf <= 51), "crf is not an int between 0 and 51."
+    assert (names),\
+        "You've inputted an empty list. Please provide a populated list."
+    for name in names:
+        assert(".fmf" in name),\
+            f"The file {name} is not an .fmf video. Please provide an .fmf file."
 
     in_paths = []
     out_paths = []
