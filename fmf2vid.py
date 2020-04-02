@@ -18,8 +18,6 @@ import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 from ffmpy import FFmpeg
 
 
-# TODO: add assertions to fxns to check that things are not empty
-
 def mkdirs4tiffs (names):
 
     '''
@@ -29,7 +27,8 @@ def mkdirs4tiffs (names):
     names (list): a list of the .fmf files to be converted
     
     Returns:
-    Empty directories for each .fmf video. Can undo in terminal by navigating to `vid_path` and executing `rm -r */` 
+    Empty directories for each .fmf video. Can undo in terminal by navigating \
+    to `vid_path` and executing `rm -r */` 
     '''
     
     assert (names),\
@@ -63,7 +62,8 @@ def get_framerate_duration (names):
     names (list): a list of the .fmf files to be converted
     
     Returns:
-    Empty directories for each .fmf video. Can undo in terminal by navigating to `vid_path` and executing `rm -r */` 
+    Empty directories for each .fmf video. Can undo in terminal by navigating \
+    to `vid_path` and executing `rm -r */` 
     '''
 
     assert (names),\
@@ -89,13 +89,15 @@ def get_framerate_duration (names):
         #frameRate in frames per second
         frameRate = vidSize/timeLen
     
-        print(str(frameRate)+ ' is frame rate and ' + str(timeLen) + ' is length of video (s)')
+        print(str(frameRate)+ ' is frame rate and ' + 
+              str(timeLen) + ' is length of video (s)')
 
 
 def fmf2tiff (names):
     
     '''
-    Converts a list of .fmf files to .tiff files so they can be converted to mp4s. Can batch process multiple .fmf videos into multiple 
+    Converts a list of .fmf files to .tiff files so they can be converted to mp4s.\
+     Can batch process multiple .fmf videos into multiple 
     
     Parameters:
     names (list): a list of the .fmf files to be converted
@@ -133,16 +135,19 @@ def fmf2tiff (names):
 def tiff2mp4 (names, save_tiffs, crf):
     
     '''
-    Converts .tiffs located in a directory into an .mp4 file. Can batch process multiple directories of .tiffs into multiple respective .mp4 files.
+    Converts .tiffs located in a directory into an .mp4 file.\
+    Can batch process multiple directories of .tiffs into multiple respective .mp4 files.
     
     Paramters:
     names (list): a list of the .fmf files to be converted.
-    save_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
-    crf (int): the constant rate factor for video compression, ranging from 0, the least compressed, to 51, the most compressed. 
+    save_tiffs (str): a flag to delete directories containing the input tiff\
+    files, after conversion
+    crf (int): the constant rate factor for video compression, ranging from 0,\
+     the least compressed, to 51, the most compressed. 
     
     Returns:
-    .mp4 files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
-    
+    .mp4 files in the same directory as the .fmf files. Can undo in terminal\
+     by navigating to `vid_path` and executing `rm *.!(fmf)` 
     '''
 
     assert (0 <= crf <= 51), "crf is not an int between 0 and 51."
@@ -159,7 +164,7 @@ def tiff2mp4 (names, save_tiffs, crf):
     
     for name in names:
         
-        # Compute the exact frame rate of each video to input into the FFmpeg conversions
+        # Compute the exact frame rate of each video for FFmpeg conversions:
         fmfs.append(FMF.FlyMovie(name))
         fmf = fmfs[names.index(name)]
         vidSize = fmf.get_n_frames()
@@ -172,8 +177,12 @@ def tiff2mp4 (names, save_tiffs, crf):
         out_paths.append(name.replace('.fmf','.mp4'))
         
         ff = FFmpeg(
-            inputs={in_paths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
-            outputs={out_paths[names.index(name)]: '-crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
+            inputs={in_paths[names.index(name)]: '-r '+ 
+                    str(frameRate) +
+                    ' -f image2'},
+            outputs={out_paths[names.index(name)]: '-crf ' + 
+                    str(crf) + 
+                    ' -pix_fmt yuv420p'} 
         )
         ff.run()
 
@@ -196,15 +205,19 @@ def tiff2mp4 (names, save_tiffs, crf):
 def tiff2avi (names, save_tiffs, crf):
     
     '''
-    Converts .tiffs located in a directory into an .avi file. Can batch process multiple directories of .tiffs into multiple respective .avi files.
+    Converts .tiffs located in a directory into an .avi file. Can batch process\
+     multiple directories of .tiffs into multiple respective .avi files.
     
     Paramters:
     names (list): a list of the .fmf files to be converted.
-    save_tiffs (str): a flag to delete directories containing the input tiff files, after conversion
-    crf (int): the constant rate factor for video compression, ranging from 0, the least compressed, to 51, the most compressed. 
+    save_tiffs (str): a flag to delete directories containing the input tiff\
+     files, after conversion
+    crf (int): the constant rate factor for video compression, ranging from 0,\
+     the least compressed, to 51, the most compressed. 
     
     Returns:
-    .avi files in the same directory as the .fmf files. Can undo in terminal by navigating to `vid_path` and executing `rm *.!(fmf)` 
+    .avi files in the same directory as the .fmf files. Can undo in terminal by \
+    navigating to `vid_path` and executing `rm *.!(fmf)` 
     
     '''
     
@@ -235,8 +248,12 @@ def tiff2avi (names, save_tiffs, crf):
         out_paths.append(name.replace('.fmf','.avi'))
         
         ff = FFmpeg(
-            inputs={in_paths[names.index(name)]: '-r '+ str(frameRate)+' -f image2'},
-            outputs={out_paths[names.index(name)]: '-c:v libx264 -crf ' + str(crf) + ' -pix_fmt yuv420p'} # crf 0 is most lossless compression, 51 is opposite
+            inputs={in_paths[names.index(name)]: '-r '+ 
+                    str(frameRate) +
+                    ' -f image2'},
+            outputs={out_paths[names.index(name)]: '-c:v libx264 -crf ' + 
+                    str(crf) + 
+                    ' -pix_fmt yuv420p'} 
         )
         ff.run()
 
