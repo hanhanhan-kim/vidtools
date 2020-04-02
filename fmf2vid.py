@@ -160,7 +160,7 @@ def tiff2vid (names, output, save_tiffs, crf):
         assert(".fmf" in name),\
             f"The file {name} is not an .fmf video. Please provide an .fmf file."
     assert (output == "avi" or "mp4"), \
-        f"Please specify either 'avi' or 'mp4', and not {output} as the output\
+        f"Please specify either 'avi' or 'mp4', and not '{output}' as the output\
         file type."
     
     in_paths = []
