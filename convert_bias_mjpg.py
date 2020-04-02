@@ -4,16 +4,16 @@
 This script was originally written by Will Dickson. 
 I since modified it to enable batch processing, and for use with argparse.
 
-Batch convert .mjpg colour videos captured in BIAS (IOrodeo) into compressed\
+Batch convert .mjpg colour videos captured in BIAS (IOrodeo) into compressed \
 and viewable .avi video files. 
 
-This script requires both the index.txt file and its corresponding .mjpg\
+This script requires both the index.txt file and its corresponding .mjpg \
 image stack file. The index file MUST be called 'index.txt'.
 
-Only one index.txt file and its corresponding .mjpg image stack should be present\
+Only one index.txt file and its corresponding .mjpg image stack should be present \
 in a given directory.
 
-N.B. This script cannot convert to the true acquisition frame rate for videos\
+N.B. This script cannot convert to the true acquisition frame rate for videos \
 captured at speeds greater than 65 Hz. If captured at 65+ Hz, convert the video
 to a slower speed, then speed it up afterwards. An example shell script is provided
 in this directory. 
