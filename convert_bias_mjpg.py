@@ -1,15 +1,29 @@
 #!/usr/bin/python3
 
-# Written by Will Dickson
+"""
+This script was originally written by Will Dickson. 
+Batch convert .mjpg colour videos captured in BIAS (IOrodeo) into compressed\
+and viewable .avi video files. 
 
-# Cannot convert to true frame rate for videos captured at speeds greater than 65 Hz.
-# If captured at 65+ Hz, convert to a slower speed, then speed up afterwards. 
+This script requires both the index.txt file and its corresponding .mjpg\
+image stack file. The index file MUST be called 'index.txt'.
 
-from __future__ import print_function
+Only one index.txt file and its corresponding .mjpg image stack should be present\
+in a given directory.
+
+N.B. This script cannot convert to the true acquisition frame rate for videos\
+captured at speeds greater than 65 Hz. If captured at 65+ Hz, convert the video
+to a slower speed, then speed it up afterwards. An example shell script is provided
+in this directory. 
+"""
+
+import glob
 import os
+from os.path import join, split, splitext
 import sys
 import cv2
 import numpy as np
+import argparse
 
 
 def read_indexfile(indexfile):
@@ -71,17 +85,46 @@ def convert_bias_mjpg(bias_indexfile, bias_moviefile, outfile, scale=1.0):
                 break
             
 
-# -----------------------------------------------------------------------------
+def main():
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("root",
+        help="Absolute path to the root directory. I.e. the outermost folder\
+             that houses the index.txt and .mjpg image stack file.")
+    parser.add_argument("nesting", type=int,
+        help="Specifies the number of folders that are nested from the root\
+            directory. I.e. the number of folders between root and the subdirectory\
+            that houses the index.txt and .mjpg image stack file.")
+    parser.add_argument("scale", type=float, nargs="?", default=1.0,
+        help="")
+    args = parser.parse_args()
+
+    root = args.root
+    nesting = args.nesting
+    scale = args.scale
+
+    folders = sorted(glob.glob(join(root, nesting * "*/")))
+    for folder in folders:
+
+        indexfile = glob.glob(join(folder, "index.txt"))
+        moviefile = glob.glob(join(folder, "*.mjpg"))
+
+        assert indexfile,\
+            f"The folder, {folder}, has no index.txt files."
+        assert len(indexfile)==1,\
+            f"The folder, {folder}, must have exactly 1 index.txt file."
+        assert moviefile,\
+            f"The folder, {folder}, has no .mjpg image stacks."
+        assert len(moviefile)==1,\
+            f"The folder, {folder}, must have exactly 1 .mjpg file"
+
+        _, moviefile_tail = split(moviefile)
+        basename, _ = splitext(moviefile_tail)
+        outfile = f"{basename}.avi"
+
+        convert_bias_mjpg(indexfile, moviefile, outfile, scale)
+        
+
+# TODO: Test the script!
 if __name__ == '__main__':
-
-    indexfile = sys.argv[1]
-    moviefile = sys.argv[2]
-    if len(sys.argv) >= 4:
-        scale = float(sys.argv[3])
-    else:
-        scale = 1.0
-    basename, extname = os.path.splitext(moviefile)
-    outfile = '{}_converted.{}'.format(basename, 'avi')
-    convert_bias_mjpg(indexfile, moviefile, outfile, scale=scale)
-
-
+    main()
