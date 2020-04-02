@@ -13,7 +13,7 @@ pip install motmot.FlyMovieFormat
 pip install ffmpy
 
 ```
-The version numbers of the above dependencies as of 2020/03/22:
+The version numbers of the above dependencies as of 2020/04/01:
 
 <pre>
     - <b>opencv==3.4.2</b>
