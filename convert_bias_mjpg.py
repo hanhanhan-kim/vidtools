@@ -2,6 +2,8 @@
 
 """
 This script was originally written by Will Dickson. 
+I since modified it to enable batch processing, and for use with argparse.
+
 Batch convert .mjpg colour videos captured in BIAS (IOrodeo) into compressed\
 and viewable .avi video files. 
 
@@ -118,8 +120,7 @@ def main():
         assert len(moviefile)==1,\
             f"The folder, {folder}, must have exactly 1 .mjpg file"
 
-        _, moviefile_tail = split(moviefile)
-        basename, _ = splitext(moviefile_tail)
+        basename, _ = splitext(split(moviefile)[1])
         outfile = f"{basename}.avi"
 
         convert_bias_mjpg(indexfile, moviefile, outfile, scale)
