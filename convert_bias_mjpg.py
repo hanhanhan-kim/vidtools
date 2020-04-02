@@ -19,13 +19,12 @@ to a slower speed, then speed it up afterwards. An example shell script is provi
 in this directory. 
 """
 
-import glob
-import os
-from os.path import join, split, splitext
-import sys
 import cv2
 import numpy as np
 import argparse
+import glob
+import os
+from os.path import join, split, splitext
 
 
 def read_indexfile(indexfile):
