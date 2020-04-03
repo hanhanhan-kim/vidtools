@@ -126,6 +126,5 @@ def main():
         convert_bias_mjpg(indexfile[0], moviefile[0], outfile, scale)
         
 
-# TODO: Test the script!
 if __name__ == '__main__':
     main()
