@@ -69,7 +69,7 @@ def convert_bias_mjpg(bias_indexfile, bias_moviefile, outfile, scale=1.0):
     with open(bias_moviefile,'rb') as f:
         for i, index_item in enumerate(index_list):
             # Extract frame from file
-            print('frame: {}, timestap: {:1.2f}'.format(index_item['frame'],index_item['timestamp'])) 
+            print('frame: {}, timestamp: {:1.2f}'.format(index_item['frame'],index_item['timestamp'])) 
             f.seek(index_item['start_pos'])
             data = f.read(index_item['end_pos'] - index_item['start_pos']+1)
             img = cv2.imdecode(np.fromstring(data,dtype=np.uint8),-1)
