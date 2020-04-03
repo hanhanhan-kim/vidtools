@@ -97,7 +97,8 @@ def main():
             directory. I.e. the number of folders between root and the subdirectory\
             that houses the index.txt and .mjpg image stack file.")
     parser.add_argument("scale", type=float, nargs="?", default=1.0,
-        help="")
+        help="The scale of the video to be converted, relative to the raw input.\
+            The default value is 1.0.")
     args = parser.parse_args()
 
     root = args.root
@@ -119,10 +120,10 @@ def main():
         assert len(moviefile)==1,\
             f"The folder, {folder}, must have exactly 1 .mjpg file"
 
-        basename, _ = splitext(split(moviefile)[1])
+        basename, _ = splitext(split(moviefile[0])[1])
         outfile = f"{basename}.avi"
 
-        convert_bias_mjpg(indexfile, moviefile, outfile, scale)
+        convert_bias_mjpg(indexfile[0], moviefile[0], outfile, scale)
         
 
 # TODO: Test the script!
