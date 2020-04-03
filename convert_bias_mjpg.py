@@ -120,8 +120,8 @@ def main():
         assert len(moviefile)==1,\
             f"The folder, {folder}, must have exactly 1 .mjpg file"
 
-        basename, _ = splitext(split(moviefile[0])[1])
-        outfile = f"{basename}.avi"
+        outfile_base, _ = splitext(moviefile[0])
+        outfile = f"{outfile_base}.avi"
 
         convert_bias_mjpg(indexfile[0], moviefile[0], outfile, scale)
         
