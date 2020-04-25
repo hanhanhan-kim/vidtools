@@ -1,5 +1,5 @@
 # vid_utils
-Utilities for working with videos acquired with machine vision cameras
+Utilities for compressing videos acquired with machine vision cameras
 
 ## Dependencies:
 Using `Python 3.7.7`.
