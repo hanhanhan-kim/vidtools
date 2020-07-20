@@ -2,8 +2,9 @@
 
 """
 Convert raw .fmf videos to compressed and viewable .avi or .mp4 video files.
-The .fmf video is converted to an uncompressed directory of .tiff files, \
-before being compressed to the .avi or .mp4. 
+The .fmf video is converted to an uncompressed directory of .tiff files, 
+before being compressed to the .avi or .mp4. Make sure the libx264 encoder is 
+enabled in your FFMPEG installation. 
 """
 
 import skimage.io 
@@ -82,16 +83,15 @@ def get_framerate_duration (names):
         # Get an fmf from the fmfs
         fmf = fmfs[names.index(name)]
     
-        vidSize = fmf.get_n_frames()
-        tmStmps = fmf.get_all_timestamps()
+        vid_size = fmf.get_n_frames()
+        time_stamps = fmf.get_all_timestamps()
 
-        timeLen = tmStmps[-1] - tmStmps[0]
+        time_length = time_stamps[-1] - time_stamps[0]
 
-        #frameRate in frames per second
-        frameRate = vidSize/timeLen
-    
-        print(str(frameRate)+ ' is frame rate and ' + 
-              str(timeLen) + ' is length of video (s)')
+        #frame_rate in frames per second
+        frame_rate = vid_size/time_length
+
+        print(f"{frame_rate} Hz is frame rate and {time_length} s is length of video")
 
 
 def fmf2tiff (names):
@@ -173,40 +173,28 @@ def tiff2vid (names, output, save_tiffs, crf):
         # Compute the exact frame rate of each video for FFmpeg conversions:
         fmfs.append(FMF.FlyMovie(name))
         fmf = fmfs[names.index(name)]
-        vidSize = fmf.get_n_frames()
-        tmStmps = fmf.get_all_timestamps()
-        timeLen = tmStmps[-1] - tmStmps[0]
-        frameRate = vidSize/timeLen
+        vid_size = fmf.get_n_frames()
+        time_stamps = fmf.get_all_timestamps()
+        time_length = time_stamps[-1] - time_stamps[0]
+        frame_rate = vid_size/time_length
         
-        if output == "avi":
-            # Convert:
-            in_paths.append(name.replace('.fmf','/%08d.tiff'))
-            out_paths.append(name.replace('.fmf','.avi'))
-            
-            ff = FFmpeg(
-                inputs={in_paths[names.index(name)]: '-r '+ 
-                        str(frameRate) +
-                        ' -f image2'},
-                outputs={out_paths[names.index(name)]: '-c:v libx264 -crf ' + 
-                        str(crf) + 
-                        ' -pix_fmt yuv420p'} 
-            )
-            ff.run()
+        # Convert:
+        in_paths.append(name.replace('.fmf','/%08d.tiff'))
 
+        if output == "avi":
+            out_paths.append(name.replace('.fmf','.avi'))
         elif output == "mp4":
-            # Convert:
-            in_paths.append(name.replace('.fmf','/%08d.tiff'))
             out_paths.append(name.replace('.fmf','.mp4'))
-            
-            ff = FFmpeg(
-                inputs={in_paths[names.index(name)]: '-r '+ 
-                        str(frameRate) +
-                        ' -f image2'},
-                outputs={out_paths[names.index(name)]: '-crf ' + 
-                        str(crf) + 
-                        ' -pix_fmt yuv420p'} 
-            )
-            ff.run()
+        
+        ff = FFmpeg(
+            inputs={in_paths[names.index(name)]: '-r '+ 
+                    str(frame_rate) +
+                    ' -f image2'},
+            outputs={out_paths[names.index(name)]: '-c:v libx264 -crf ' + 
+                    str(crf) + 
+                    ' -pix_fmt yuv420p'} 
+        )
+        ff.run()
 
         # Remove folders containing tiffs, based on flag:
         if save_tiffs == False:
