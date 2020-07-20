@@ -143,7 +143,7 @@ def tiff2vid (names, output, save_tiffs, crf):
     Paramters:
     names (list): A list of the .fmf files to be converted.
     output (str): The desired output video type. Accepts either "avi" or "mp4".
-    save_tiffs (str): A flag to delete directories containing the input tiff\
+    save_tiffs (bool): A flag to delete directories containing the input tiff\
     files, after conversion
     crf (int): The constant rate factor for video compression, ranging from 0,\
      the least compressed, to 51, the most compressed. 
@@ -209,13 +209,10 @@ def tiff2vid (names, output, save_tiffs, crf):
             ff.run()
 
         # Remove folders containing tiffs, based on flag:
-        if save_tiffs == "false":
-
-            os.chdir(name.replace(".fmf",""))
-
-            if all (glob.glob(name.replace(".fmf",".tiff"))) is True:
+        if save_tiffs == False:
+            
+            if len(os.listdir(name.replace(".fmf",""))) != 0:
                 shutil.rmtree(name.replace(".fmf",""))
-                os.chdir("..")
             else:
                 print("No .tiff files in this directory")
         
