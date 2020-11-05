@@ -66,6 +66,8 @@ def convert_bias_mjpg(bias_indexfile, bias_moviefile, outfile, scale=1.0):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     framerate = get_framerate(index_list) # can hardcode here if greater than 65 Hz
     vid = None
+    print(bias_moviefile)
+    # import ipdb; ipdb.set_trace()
     with open(bias_moviefile,'rb') as f:
         for i, index_item in enumerate(index_list):
             # Extract frame from file
