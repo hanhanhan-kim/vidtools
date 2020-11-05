@@ -29,8 +29,8 @@ def main():
         output_vid = f"{splitext(vid)[0]}.mp4"
             
         # Convert:
-        args = ["ffmpeg", "-framerate", framerate, "-i", vid, "-vf", "format=gray output", "-c", "copy", output_vid]
-        equivalent_cmd = f"ffmpeg -framerate {framerate} -i {vid} -vf format=gray output -c copy {output_vid}"
+        args = ["ffmpeg", "-framerate", framerate, "-i", vid, "-c", "copy", output_vid]
+        equivalent_cmd = f"ffmpeg -framerate {framerate} -i {vid} -c copy {output_vid}"
 
         print(f"running command {equivalent_cmd} from dir {root}")
         subprocess.run(args, cwd=root)
