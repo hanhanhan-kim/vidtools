@@ -1,4 +1,4 @@
-# vid_utils
+# Video scripts
 Scripts for working with machine vision camera videos. 
 
 ## Dependencies:
