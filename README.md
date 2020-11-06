@@ -1,5 +1,5 @@
 # vid_utils
-Utilities for working with machine vision camera videos. 
+Scripts for working with machine vision camera videos. 
 
 ## Dependencies:
 Using `Python 3.7.7`.
