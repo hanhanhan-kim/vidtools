@@ -30,7 +30,7 @@ def main():
             
         # Convert:
         args = ["ffmpeg", "-framerate", framerate, "-i", vid, "-c", "copy", output_vid]
-        equivalent_cmd = f"ffmpeg -framerate {framerate} -i {vid} -c copy {output_vid}"
+        equivalent_cmd = " ".join(args)
 
         print(f"running command {equivalent_cmd} from dir {root}")
         subprocess.run(args, cwd=root)
