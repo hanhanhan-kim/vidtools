@@ -1,9 +1,9 @@
 # vid_utils
-Utilities for compressing videos acquired with machine vision cameras
+Utilities for working with machine vision camera videos. 
 
 ## Dependencies:
 Using `Python 3.7.7`.
-In order to run `fmf2vid.py`, set up an Anaconda environment with the following installs:
+In order to run `fmf_to_vid.py`, set up an Anaconda environment with the following installs:
 
 ```
 conda install opencv

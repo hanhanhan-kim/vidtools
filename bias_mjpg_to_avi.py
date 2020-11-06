@@ -12,11 +12,6 @@ image stack file. The index file MUST be called 'index.txt'.
 
 Only one index.txt file and its corresponding .mjpg image stack should be present \
 in a given directory.
-
-N.B. This script cannot convert to the true acquisition frame rate for videos \
-captured at speeds greater than 65 Hz. If captured at 65+ Hz, convert the video
-to a slower speed, then speed it up afterwards. An example shell script is provided
-in this directory. 
 """
 
 import cv2
@@ -107,6 +102,7 @@ def main():
     nesting = args.nesting
     scale = args.scale
 
+    # TODO: use Path from pathlib instead of glob and nesting
     folders = sorted(glob.glob(join(root, nesting * "*/")))
     for folder in folders:
 
