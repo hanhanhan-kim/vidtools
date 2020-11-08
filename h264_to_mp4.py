@@ -6,9 +6,10 @@ Can output the .mp4 file in monochrome.
 """
 
 import subprocess
-import glob
-from os.path import join, splitext, expanduser
 import argparse
+from os.path import splitext, expanduser
+from pathlib import Path
+
 import cv2
 
 
@@ -26,10 +27,11 @@ def main():
     root = expanduser(args.root)
     framerate = str(args.framerate)
     mono = args.mono
-    vids = sorted(glob.glob(join(root, "*.h264")))
+    vids = [str(path.absolute()) for path in Path(root).rglob("*.h264")]
 
     for vid in vids:
         
+        print(f"Processing {vid} ...")
         output_vid = f"{splitext(vid)[0]}.mp4"
 
         if not mono:
@@ -51,7 +53,7 @@ def main():
                                   apiPreference=0, 
                                   fourcc=fourcc, 
                                   fps=int(framerate), 
-                                  frameSize=(1920,1080), 
+                                  frameSize=(1920,1080), # TODO: make this a kwarg?
                                   params=None)
 
             while (cap.isOpened()):
@@ -77,7 +79,8 @@ def main():
             cap.release()
             out.release()
             cv2.destroyAllWindows()
-            
+
+    print("Conversions complete!")            
 
             
 if __name__ == "__main__":
