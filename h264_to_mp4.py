@@ -17,7 +17,7 @@ def main():
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", 
-        help="Absolute path to the root directory.")
+        help="Path to the root directory.")
     parser.add_argument("framerate", nargs="?", default=30,
         help="Framerate (int)")
     parser.add_argument("-m","--mono", action="store_true",
@@ -46,7 +46,7 @@ def main():
                 args = ["ffmpeg", "-framerate", framerate, "-i", vid, "-c", "copy", output_vid]
                 equivalent_cmd = " ".join(args)
 
-                print(f"running command {equivalent_cmd} from dir {root}")
+                print(f"running command {equivalent_cmd} from {root}")
                 subprocess.run(args, cwd=root)
             
             else:
