@@ -2,7 +2,6 @@
 
 """
 Calibrates and undistorts images from a calibration checkerboard video.
-Calibration video must be called "calibration.mp4". 
 The rows and corners of the checkerboard are interchangeable. 
 """
 
@@ -16,30 +15,31 @@ import cv2
 import numpy as np
 
 
-def convert_vid_to_jpgs(calib_vid, 
+def convert_vid_to_jpgs(vid, 
                         framerate, 
                         backend="opencv"):
 
     """
-    Converts a video called "calibration.mp4" into a folder of .jpgs. 
-    Saves the .jpgs folder into the same directory as "calibration.mp4".
+    Converts a .mp4 video into a folder of .jpgs. 
+    Saves the .jpgs folder into the same directory as the input .mp4 video.
 
     Parameters:
     -----------
-    calib_vid (str): Path to "calibration.mp4".
-    framerate (int): Framerate with which "calibration.mp4" was recorded.
-    backend (str): Backend with which to convert. Can be either "opencv" or "ffmpeg".
-        Default is "opencv". The ffmpeg backend is much faster, but is poor quality.
+    vid (str): Path to .mp4 video 
+    framerate (int): Framerate with which `vid` was recorded.
+        backend (str): Backend with which to convert. Can be either "opencv" or "ffmpeg".
+    Default is "opencv". The ffmpeg backend is much faster, but is poor quality.
 
     Returns:
     --------
     A folder of .jpgs.
     """
 
-    assert("calibration.mp4" in calib_vid, f"'calibration.mp4' is not in {calib_vid}")
+    assert(".mp4" in vid), f"'{basename(vid)}' is not in {dirname(vid)}"
+    assert(backend=="opencv" or backend=="ffmpeg"), "Must specify the backend as 'opencv' or 'ffmpeg'"
 
-    calib_vid = expanduser(calib_vid)
-    jpgs_dir = path.join(dirname(calib_vid), "calibration")
+    vid = expanduser(vid)
+    jpgs_dir = path.join(dirname(vid), f"{basename(splitext(vid)[0])}")
 
     if Path(jpgs_dir).is_dir():
 
@@ -48,11 +48,11 @@ def convert_vid_to_jpgs(calib_vid,
     else:
         
         mkdir(jpgs_dir)
-        print("Converting 'calibration.mp4' to .jpgs")
+        print(f"Converting '{basename(vid)}' to .jpgs ...")
 
-        if backend=="opencv":
+        if backend=="opencv": 
 
-            cap = cv2.VideoCapture(calib_vid)
+            cap = cv2.VideoCapture(vid)
             
             i = 0
             while (cap.isOpened()):
@@ -62,7 +62,7 @@ def convert_vid_to_jpgs(calib_vid,
                 if ret == True:
 
                     cv2.imwrite(path.join(jpgs_dir, f"frame_{i:08d}.jpg"), frame)
-                    cv2.imshow(f"converting {basename(calib_vid)} ...", frame) 
+                    cv2.imshow(f"converting {basename(vid)} ...", frame) 
 
                     i += 1
 
@@ -77,17 +77,14 @@ def convert_vid_to_jpgs(calib_vid,
 
         elif backend=="ffmpeg":
 
-            args = ["ffmpeg", "-i", calib_vid, "-vf", f"fps={str(framerate)}", "frame_%08d.jpg"]
+            args = ["ffmpeg", "-i", vid, "-vf", f"fps={str(framerate)}", "frame_%08d.jpg"]
             equivalent_cmd = " ".join(args)
 
             print(f"running command {equivalent_cmd} from {jpgs_dir}")
             subprocess.run(args, cwd=jpgs_dir)
 
-        else:
-            print("backend arg must be either 'opencv' or 'ffmpeg'")
 
-
-def calibrate_checkerboard(board_jpgs_path, m_corners, n_corners):
+def calibrate_checkerboard(board_jpgs_dir, m_corners, n_corners):
 
     """
     Finds internal corners of checkerboards and saves them from a folder of .jpgs.
@@ -95,26 +92,27 @@ def calibrate_checkerboard(board_jpgs_path, m_corners, n_corners):
 
     Parameters:
     -----------
-    board_jpgs_path (str): Path to folder where 
-    m_corners (int): Number of internal corners along the 
-        rows of the checkerboard
-    n_corners (int): Number of internal corners along the 
-        columns of the checkerboard
+    board_jpgs_dir (str): Path to folder containing checkerboard .jpgs
+    m_corners (int): Number of internal corners along the rows of the checkerboard
+    n_corners (int): Number of internal corners along the columns of the checkerboard
 
     Returns:
     --------
-
+    ret, cam_mtx, dist, r_vecs, t_vecs from cv2.calibrateCamera() 
     """
 
-    boards_dir = path.join(dirname(board_jpgs_path), "checkerboards")
+    boards_dir = path.join(dirname(board_jpgs_dir), "checkerboards")
 
     if Path(boards_dir).is_dir():
+        
         print(f"{basename(boards_dir)} already exists at {dirname(boards_dir)}. Skipping ...")
+        # TODO: Read in the ".camcal" file 
 
     else:
+
         mkdir(boards_dir)
 
-        images = [str(path.absolute()) for path in Path(board_jpgs_path).rglob("*.jpg")]
+        jpgs = [str(path.absolute()) for path in Path(board_jpgs_dir).rglob("*.jpg")]
         
         # FIND CORNERS:
 
@@ -130,7 +128,7 @@ def calibrate_checkerboard(board_jpgs_path, m_corners, n_corners):
         img_points = [] # 2d points in image plane
 
         i = 0
-        for fname in images:
+        for fname in jpgs:
 
             img = cv2.imread(fname)
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -150,7 +148,7 @@ def calibrate_checkerboard(board_jpgs_path, m_corners, n_corners):
                 # Draw and display the corners:
                 img = cv2.drawChessboardCorners(img, (m_corners, n_corners), better_corners, ret)
                 cv2.imwrite(path.join(boards_dir, f"checkerboard_{i:08d}.jpg"), img)
-                cv2.imshow(f"checkerboard", img) # live feed slows down the code
+                cv2.imshow("checkerboard detected ...", img) # live feed slows down the code
                 print(f"found checkerboard number {i}")
                 cv2.waitKey(500) # can't be too low, 500 seems safe if using imshow()
                 i += 1
@@ -158,11 +156,51 @@ def calibrate_checkerboard(board_jpgs_path, m_corners, n_corners):
         cv2.destroyAllWindows()
 
         # CALIBRATE: 
-        ret, mtx, dist, r_vecs, t_vecs = cv2.calibrateCamera(obj_points, img_points, 
-                                                             gray.shape[::-1], 
-                                                             None, None)
+        # TODO: I need a way to output these variables even if boards_dir already exists: 
+        # ... maybe write them out to a text file called ".camcal"
+        ret, cam_mtx, dist, r_vecs, t_vecs = cv2.calibrateCamera(obj_points, img_points, 
+                                                                 gray.shape[::-1], 
+                                                                 None, None)
 
-        return ret, mtx, dist, r_vecs, t_vecs
+        return ret, cam_mtx, dist, r_vecs, t_vecs
+
+
+def undistort(vid, cam_mtx, dist, framerate):
+
+    """
+    TODO: write out these docs 
+    """
+    vid = expanduser(vid)
+    convert_vid_to_jpgs(vid, framerate)
+    jpgs_dir = path.join(dirname(vid), basename(splitext(vid)[0])) 
+    jpgs = [str(path.absolute()) for path in Path(jpgs_dir).rglob("*.jpg")]
+
+    undistorted_dir = path.join(dirname(vid), f"undistorted_{basename(splitext(vid)[0])}")
+
+    if Path(undistorted_dir).is_dir():
+
+        print(f"{basename(undistorted_dir)} already exists at '{dirname(undistorted_dir)}'. Skipping ...")
+
+    else:
+        
+        mkdir(undistorted_dir)
+        print(f"Undistorting '{basename(vid)}' ...")
+    
+        for i, jpg in enumerate(jpgs):
+
+            img = cv2.imread(jpg)
+            h, w = img.shape[:2]
+
+            # Tailor the camera matrix: 
+            new_cam_mtx, roi = cv2.getOptimalNewCameraMatrix(cam_mtx, dist, (w,h), 1, (w,h))
+            
+            # Undistort using the original and new cam matrices: 
+            undistorted = cv2.undistort(img, cam_mtx, dist, None, new_cam_mtx)
+
+            # Crop the image
+            x,y,w,h = roi
+            undistorted = undistorted[y:y+h, x:x+w]
+            cv2.imwrite(path.join(undistorted_dir, f"undistorted_{i:08d}.jpg"), undistorted) 
 
 
 def main():
@@ -176,6 +214,8 @@ def main():
         help="Number of internal corners along the rows of the checkerboard")
     parser.add_argument("n_corners",
         help="Number of internal rows along the corners of the checkerboard")
+    parser.add_argument("vid_to_undistort",
+        help="Path to the target video for undistortion")
     parser.add_argument("-ff","--ffmpeg", action="store_true",
         help="Generate .jpgs with ffmpeg instead of OpenCV") 
     args = parser.parse_args()
@@ -183,17 +223,22 @@ def main():
     calib_vid = expanduser(args.calib_vid)
     framerate = args.framerate
     is_ffmpeg = args.ffmpeg
-    board_jpgs_path = path.join(dirname(calib_vid), "calibration")
+    board_jpgs_dir = path.join(dirname(calib_vid), "calibration")
     m_corners = int(args.m_corners)
     n_corners = int(args.n_corners)
+    vid_to_undistort = args.vid_to_undistort
 
-    if not is_ffmpeg:
+    if is_ffmpeg:
+        convert_vid_to_jpgs(calib_vid, framerate, backend="ffmpeg")
+    else:
         convert_vid_to_jpgs(calib_vid, framerate)
 
-    else:
-        convert_vid_to_jpgs(calib_vid, framerate, backend="ffmpeg")
+    _, cam_mtx, dist, _, _ = calibrate_checkerboard(board_jpgs_dir, m_corners, n_corners) 
 
-    ret, mtx, dist, r_vecs, t_vecs = calibrate_checkerboard(board_jpgs_path, m_corners, n_corners) 
+    print(f"camera matrix: {cam_mtx} \ndistance coefficients: {dist}")
+
+    # TODO: use Path().rglob("*.mp4") to undistort multiple vids at once, then update docs: 
+    undistort(vid_to_undistort, cam_mtx, dist, framerate)
 
             
 if __name__ == "__main__":
