@@ -88,8 +88,7 @@ def convert_vid_to_jpgs(vid, framerate, backend="opencv"):
 def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_debug=True):
 
     """
-    Finds internal corners of checkerboards and saves them from a folder of .jpgs.
-    Generates the camera matrix from the checkerboards' internal corners. 
+    Finds internal corners of checkerboards to generate the camera matrix.
 
     Parameters:
     -----------
@@ -195,7 +194,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                     cv2.waitKey(1) 
                     i += 1
 
-                    cap.release()
+            cap.release()
 
         elif Path(board_vid).is_dir():
 
@@ -244,6 +243,8 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         ret, cam_mtx, dist, r_vecs, t_vecs = cv2.calibrateCamera(obj_points, img_points, 
                                                                  gray.shape[::-1], 
                                                                  None, None)
+
+        print(f"camera matrix: \n{cam_mtx} \ndistance coefficients: \n{dist}")
 
         return ret, cam_mtx, dist, r_vecs, t_vecs
 
@@ -309,10 +310,10 @@ def main():
     m_corners = int(args.m_corners)
     n_corners = int(args.n_corners)
     vid_to_undistort = args.vid_to_undistort
+    do_debug = args.debug
 
-    _, cam_mtx, dist, _, _ = calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=framerate) 
-
-    print(f"camera matrix: {cam_mtx} \ndistance coefficients: {dist}")
+    _, cam_mtx, dist, _, _ = calibrate_checkerboard(board_vid, m_corners, n_corners, 
+                                                    framerate=framerate, do_debug=do_debug) 
 
     # TODO: use Path().rglob("*.mp4") to undistort multiple vids at once, then update docs: 
     # undistort(vid_to_undistort, cam_mtx, dist, framerate)
