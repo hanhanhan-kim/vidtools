@@ -185,7 +185,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                 _, frame = cap.read()
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-                # Find the chess board corners:
+                # Find the checkerboard corners:
                 ret, corners = cv2.findChessboardCorners(gray, (m_corners, n_corners), None)
 
                 # If found, add object points, image points (after refining them):
@@ -209,7 +209,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                         cv2.imshow("checkerboard detected ...", img) 
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
-                    
+
                     pbar.set_description(f"found {i+1} checkerboards in {f+1}/{frame_count} frames") 
                     cv2.waitKey(1) 
                     i += 1
@@ -226,7 +226,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                 img = cv2.imread(jpg)
                 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
-                # Find the chess board corners:
+                # Find the checkerboard corners:
                 ret, corners = cv2.findChessboardCorners(gray, (m_corners, n_corners),None)
 
                 # If found, add object points, image points (after refining them):
@@ -323,7 +323,7 @@ def undistort(vid, cam_mtx, dist, framerate):
                               apiPreference=0, 
                               fourcc=fourcc, 
                               fps=int(framerate), 
-                              frameSize=(int(cap.get(3)),int(cap.get(4))),
+                              frameSize=(int(cap.get(3)), int(cap.get(4))),
                               params=None) 
 
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -340,17 +340,17 @@ def undistort(vid, cam_mtx, dist, framerate):
             # Undistort using the original and new cam matrices: 
             undistorted = cv2.undistort(frame, cam_mtx, dist, None, new_cam_mtx)
 
-            # Crop the image: 
-            x,y,w,h = roi
-            undistorted = undistorted[y:y+h, x:x+w]
-
-            # Save:
-            out.write(undistorted) # TODO: Writes an empty video ...
-            pbar.set_description(f"undistorting {f} out of {frame_count} frames from {basename(vid)}")
+            # # Crop the image--only works if saving to still images bc cropping results in non-standard w and h vid formats: 
+            # x,y,w,h = roi
+            # undistorted = undistorted[y:y+h, x:x+w]
 
             # cv2.imshow("undistorted ...", undistorted) 
             # if cv2.waitKey(1) & 0xFF == ord("q"):
             #     break
+
+            # Save:
+            out.write(undistorted) 
+            pbar.set_description(f"undistorting {f} out of {frame_count} frames from {basename(vid)}")
         
         cap.release()
         out.release()
