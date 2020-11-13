@@ -177,7 +177,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
             frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             pbar = trange(frame_count)
             
-            for _ in pbar:
+            for f,_ in enumerate(pbar):
                 
                 ret, frame = cap.read()
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -207,7 +207,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
                     
-                    pbar.set_description(f"found {i+1} checkerboards from {frame_count} frames") 
+                    pbar.set_description(f"found {i+1} checkerboards in {f+1}/{frame_count} frames") 
                     cv2.waitKey(1) 
                     i += 1
 
@@ -218,7 +218,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
             jpgs = [str(path.absolute()) for path in Path(board_vid).rglob("*.jpg")]
             pbar = tqdm(jpgs)
             
-            for jpg in pbar:
+            for f, jpg in enumerate(pbar):
 
                 img = cv2.imread(jpg)
                 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -248,7 +248,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
                     
-                    pbar.set_description(f"found {i+1} checkerboards from {len(jpgs)} frames") 
+                    pbar.set_description(f"found {i+1} checkerboards in {f+1}/{len(jpgs)} frames") 
                     cv2.waitKey(1) 
                     i += 1
         
