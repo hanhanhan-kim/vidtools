@@ -10,14 +10,13 @@ import argparse
 from os.path import splitext, expanduser, basename, dirname
 from os import path, mkdir
 from pathlib import Path
+from shutil import rmtree
 
 import cv2
 import numpy as np
 
 
-def convert_vid_to_jpgs(vid, 
-                        framerate, 
-                        backend="opencv"):
+def convert_vid_to_jpgs(vid, framerate, backend="opencv"):
 
     """
     Converts a .mp4 video into a folder of .jpgs. 
@@ -27,8 +26,8 @@ def convert_vid_to_jpgs(vid,
     -----------
     vid (str): Path to .mp4 video 
     framerate (int): Framerate with which `vid` was recorded.
-        backend (str): Backend with which to convert. Can be either "opencv" or "ffmpeg".
-    Default is "opencv". The ffmpeg backend is much faster, but is poor quality.
+    backend (str): Backend with which to convert. Can be either "opencv" or "ffmpeg".
+        Default is "opencv". The ffmpeg backend is much faster, but is poor quality.
 
     Returns:
     --------
@@ -84,7 +83,7 @@ def convert_vid_to_jpgs(vid,
             subprocess.run(args, cwd=jpgs_dir)
 
 
-def calibrate_checkerboard(board_jpgs_dir, m_corners, n_corners):
+def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_debug=False):
 
     """
     Finds internal corners of checkerboards and saves them from a folder of .jpgs.
@@ -92,28 +91,54 @@ def calibrate_checkerboard(board_jpgs_dir, m_corners, n_corners):
 
     Parameters:
     -----------
-    board_jpgs_dir (str): Path to folder containing checkerboard .jpgs
+
+    board_vid (str): Path to .mp4 checkerboard video or path to a folder containing 
+        checkerboard .jpgs.
     m_corners (int): Number of internal corners along the rows of the checkerboard
     n_corners (int): Number of internal corners along the columns of the checkerboard
+    framerate (int): Framerate with which `board_vid` was recorded
+    do_debut (bool): 
 
     Returns:
     --------
     ret, cam_mtx, dist, r_vecs, t_vecs from cv2.calibrateCamera() 
     """
+    
+    assert(splitext(board_vid)[1] == ".mp4"), "`board_vid` must be an '.mp4' file!"
+    assert(basename(board_vid) != "checkerboards.mp4"), "Rename 'checkerboards.mp4' to something else!"
 
-    boards_dir = path.join(dirname(board_jpgs_dir), "checkerboards")
+    output_vid = path.join(dirname(board_vid), "checkerboards.mp4")
 
-    if Path(boards_dir).is_dir():
+    if do_debug:
+
+        # TODO: use raw_input for the below print message:
+        print("Debug mode is on, which means the script will actually delete things. Previous checkerboard outputs will be deleted ...")
+        boards_dir = path.join(dirname(board_vid), "checkerboards")
+
+        if Path(boards_dir).is_dir():
+            rmtree(boards_dir)
+        else:
+            mkdir(boards_dir)
+
+        if Path(output_vid).is_file():
+            Path(output_vid).unlink()
+
+    if Path(output_vid).is_file():
         
-        print(f"{basename(boards_dir)} already exists at {dirname(boards_dir)}. Skipping ...")
+        print(f"{basename(output_vid)} already exists at {dirname(output_vid)}. Skipping ...")
         # TODO: Read in the ".camcal" file 
 
     else:
 
-        mkdir(boards_dir)
+        # Define the codec and create VideoWriter object
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
+        out = cv2.VideoWriter(filename=output_vid, 
+                              apiPreference=0, 
+                              fourcc=fourcc, 
+                              fps=int(framerate), 
+                              frameSize=(1920,1080), # TODO: make this a kwarg?
+                              params=None)
 
-        jpgs = [str(path.absolute()) for path in Path(board_jpgs_dir).rglob("*.jpg")]
-        
         # FIND CORNERS:
 
         # Termination criteria:
@@ -128,13 +153,14 @@ def calibrate_checkerboard(board_jpgs_dir, m_corners, n_corners):
         img_points = [] # 2d points in image plane
 
         i = 0
-        for fname in jpgs:
-
-            img = cv2.imread(fname)
-            gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        cap = cv2.VideoCapture(board_vid)
+        while (cap.isOpened()):
+            
+            ret, frame = cap.read()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             # Find the chess board corners:
-            ret, corners = cv2.findChessboardCorners(gray, (m_corners, n_corners),None)
+            ret, corners = cv2.findChessboardCorners(gray, (m_corners, n_corners), None)
 
             # If found, add object points, image points (after refining them):
             if ret == True:
@@ -146,13 +172,23 @@ def calibrate_checkerboard(board_jpgs_dir, m_corners, n_corners):
                 img_points.append(better_corners)
 
                 # Draw and display the corners:
-                img = cv2.drawChessboardCorners(img, (m_corners, n_corners), better_corners, ret)
-                cv2.imwrite(path.join(boards_dir, f"checkerboard_{i:08d}.jpg"), img)
-                cv2.imshow("checkerboard detected ...", img) # live feed slows down the code
-                print(f"found checkerboard number {i}")
-                cv2.waitKey(500) # can't be too low, 500 seems safe if using imshow()
-                i += 1
+                img = cv2.drawChessboardCorners(frame, (m_corners, n_corners), better_corners, ret)
+                
+                # Save to video:
+                out.write(img)
 
+                if do_debug:
+
+                    cv2.imwrite(path.join(boards_dir, f"frame_{i:08d}.jpg"), img)
+                    cv2.imshow("checkerboard detected ...", img) 
+                    if cv2.waitKey(1) & 0xFF == ord("q"):
+                        break
+
+                print(f"found {i+1} checkerboards so far ...")
+                cv2.waitKey(1) 
+                i += 1
+        
+        out.release
         cv2.destroyAllWindows()
 
         # CALIBRATE: 
@@ -206,8 +242,8 @@ def undistort(vid, cam_mtx, dist, framerate):
 def main():
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("calib_vid", 
-        help="Path to the input calibration video")
+    parser.add_argument("board_vid", 
+        help="Path to the input calibration video of the checkerboard")
     parser.add_argument("framerate",
         help="Framerate (int)")
     parser.add_argument("m_corners",
@@ -216,29 +252,20 @@ def main():
         help="Number of internal rows along the corners of the checkerboard")
     parser.add_argument("vid_to_undistort",
         help="Path to the target video for undistortion")
-    parser.add_argument("-ff","--ffmpeg", action="store_true",
-        help="Generate .jpgs with ffmpeg instead of OpenCV") 
     args = parser.parse_args()
 
-    calib_vid = expanduser(args.calib_vid)
+    board_vid = expanduser(args.board_vid)
     framerate = args.framerate
-    is_ffmpeg = args.ffmpeg
-    board_jpgs_dir = path.join(dirname(calib_vid), "calibration")
     m_corners = int(args.m_corners)
     n_corners = int(args.n_corners)
     vid_to_undistort = args.vid_to_undistort
 
-    if is_ffmpeg:
-        convert_vid_to_jpgs(calib_vid, framerate, backend="ffmpeg")
-    else:
-        convert_vid_to_jpgs(calib_vid, framerate)
-
-    _, cam_mtx, dist, _, _ = calibrate_checkerboard(board_jpgs_dir, m_corners, n_corners) 
+    _, cam_mtx, dist, _, _ = calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=framerate) 
 
     print(f"camera matrix: {cam_mtx} \ndistance coefficients: {dist}")
 
     # TODO: use Path().rglob("*.mp4") to undistort multiple vids at once, then update docs: 
-    undistort(vid_to_undistort, cam_mtx, dist, framerate)
+    # undistort(vid_to_undistort, cam_mtx, dist, framerate)
 
             
 if __name__ == "__main__":
