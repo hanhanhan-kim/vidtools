@@ -9,14 +9,16 @@ are interchangeable.
 
 import subprocess
 import argparse
+import pickle
 from os.path import splitext, expanduser, basename, dirname
 from os import path, mkdir
 from pathlib import Path
 from shutil import rmtree
-import pickle
+from sys import exit
 
 import cv2
 import numpy as np
+from tqdm import tqdm, trange
 
 
 def convert_vid_to_jpgs(vid, framerate, backend="opencv"):
@@ -104,7 +106,10 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
     Returns:
     --------
     A dictionary of length 6 that consists of ret, cam_mtx, dist, r_vecs, t_vecs 
-    from cv2.calibrateCamera() and the mean reprojection error.
+    from cv2.calibrateCamera() and the mean reprojection error. Saves this dictionary as
+    a pickle file called 'cam_calib_results.pkl'. If this file already exists, running
+    this function will read the pickle file and return the contained dictionary. 
+    In addition, saves at least a video of the labelled checkerboards.
     """
     
     assert(basename(board_vid) != "checkerboards.mp4"), "Rename 'checkerboards.mp4' to something else!"
@@ -130,7 +135,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
     pkl_file = path.join(dirname(board_vid), "cam_calib_results.pkl")
 
-    if Path(output_vid).is_file():
+    if Path(output_vid).is_file() and Path(pkl_file).is_file():
         
         print(f"{basename(output_vid)} already exists at {dirname(output_vid)}")
         print(f"reading {basename(pkl_file)} from {dirname(pkl_file)} ...")
@@ -140,7 +145,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
         return cam_calib_results
 
-    else:
+    elif not Path(output_vid).is_file() and not Path(pkl_file).is_file():
 
         # Define the codec and create VideoWriter object
         fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
@@ -169,7 +174,10 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         if Path(board_vid).is_file():
 
             cap = cv2.VideoCapture(board_vid)
-            while (cap.isOpened()):
+            frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            pbar = trange(frame_count)
+            
+            for _ in pbar:
                 
                 ret, frame = cap.read()
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -198,18 +206,19 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                         cv2.imshow("checkerboard detected ...", img) 
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
-
-                    print(f"found {i+1} checkerboards so far ...")
+                    
+                    pbar.set_description(f"found {i+1} checkerboards from {frame_count} frames") 
                     cv2.waitKey(1) 
                     i += 1
 
             cap.release()
-
+        
         elif Path(board_vid).is_dir():
 
             jpgs = [str(path.absolute()) for path in Path(board_vid).rglob("*.jpg")]
-
-            for jpg in jpgs:
+            pbar = tqdm(jpgs)
+            
+            for jpg in pbar:
 
                 img = cv2.imread(jpg)
                 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -238,9 +247,9 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                         cv2.imshow("checkerboard detected ...", img) 
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
-
-                    print(f"found {i+1} checkerboards from {len(jpgs)} frames")
-                    cv2.waitKey(1) # can't be too low, 500 seems safe if using imshow()
+                    
+                    pbar.set_description(f"found {i+1} checkerboards from {len(jpgs)} frames") 
+                    cv2.waitKey(1) 
                     i += 1
         
         out.release
@@ -270,6 +279,9 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
         return cam_calib_results
 
+    else:
+        exit(f"Only one of {basename(output_vid)} or {basename(pkl_file)} exists at {dirname(board_vid)}. \nPlease delete whichever one exists and re-run.") 
+
 
 def undistort(vid, cam_mtx, dist, framerate):
 
@@ -285,7 +297,7 @@ def undistort(vid, cam_mtx, dist, framerate):
 
     if Path(undistorted_dir).is_dir():
 
-        print(f"{basename(undistorted_dir)} already exists at '{dirname(undistorted_dir)}'. Skipping ...")
+        print(f"{basename(undistorted_dir)} already exists at {dirname(undistorted_dir)}. Skipping ...")
 
     else:
         
