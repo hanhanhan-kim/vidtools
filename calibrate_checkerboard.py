@@ -13,6 +13,7 @@ from os.path import splitext, expanduser, basename, dirname
 from os import path, mkdir
 from pathlib import Path
 from shutil import rmtree
+import pickle
 
 import cv2
 import numpy as np
@@ -102,7 +103,8 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
     Returns:
     --------
-    ret, cam_mtx, dist, r_vecs, t_vecs from cv2.calibrateCamera() 
+    A dictionary of length 6 that consists of ret, cam_mtx, dist, r_vecs, t_vecs 
+    from cv2.calibrateCamera() and the mean reprojection error.
     """
     
     assert(basename(board_vid) != "checkerboards.mp4"), "Rename 'checkerboards.mp4' to something else!"
@@ -126,10 +128,17 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         if Path(output_vid).is_file():
             Path(output_vid).unlink()
 
+    pkl_file = path.join(dirname(board_vid), "cam_calib_results.pkl")
+
     if Path(output_vid).is_file():
         
-        print(f"{basename(output_vid)} already exists at {dirname(output_vid)}. Skipping ...")
-        # TODO: Read in the ".camcal" file 
+        print(f"{basename(output_vid)} already exists at {dirname(output_vid)}")
+        print(f"reading {basename(pkl_file)} from {dirname(pkl_file)} ...")
+        cam_calib_results = pickle.load(open(pkl_file, "rb")) 
+        msg = f"camera matrix: \n{cam_calib_results['cam_mtx']}\n\ndistance coefficients: \n{cam_calib_results['dist']}\n\nmean reprojection error: \n{cam_calib_results['mean_reproj_error']}"
+        print(msg)
+
+        return cam_calib_results
 
     else:
 
@@ -140,7 +149,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                               fourcc=fourcc, 
                               fps=int(framerate), 
                               frameSize=(1920,1080), # TODO: make this a kwarg?
-                              params=None)
+                              params=None) 
 
         # FIND CORNERS:
 
@@ -225,7 +234,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
                     if do_debug:
 
-                        cv2.imwrite(path.join(boards_dir, f"frame_{i:08d}.jpg"), img)
+                        cv2.imwrite(path.join(boards_dir, basename(jpg)), img)
                         cv2.imshow("checkerboard detected ...", img) 
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
@@ -238,15 +247,28 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         cv2.destroyAllWindows()
 
         # CALIBRATE: 
-        # TODO: I need a way to output these variables even if boards_dir already exists: 
-        # ... maybe write them out to a text file called ".camcal"
         ret, cam_mtx, dist, r_vecs, t_vecs = cv2.calibrateCamera(obj_points, img_points, 
                                                                  gray.shape[::-1], 
                                                                  None, None)
 
-        print(f"camera matrix: \n{cam_mtx} \ndistance coefficients: \n{dist}")
+        # Get re-projection error: 
+        total_reproj_error = 0
+        for obj_point, img_point, r_vec, t_vec in zip(obj_points, img_points, r_vecs, t_vecs):
 
-        return ret, cam_mtx, dist, r_vecs, t_vecs
+            img_points_2, _ = cv2.projectPoints(obj_point, r_vec, t_vec, cam_mtx, dist)
+            error = cv2.norm(img_point, img_points_2, cv2.NORM_L2) / len(img_points_2)
+            total_reproj_error += np.abs(error)
+
+        mean_reproj_error = total_reproj_error / len(obj_points)
+
+        # Output:
+        msg = f"camera matrix: \n{cam_mtx}\n\ndistance coefficients: \n{dist}\n\nmean reprojection error: \n{mean_reproj_error}"
+        print(msg)
+
+        cam_calib_results = {"ret": ret, "cam_mtx": cam_mtx, "dist": dist, "r_vecs": r_vecs, "t_vecs": t_vecs, "mean_reproj_error": mean_reproj_error}
+        pickle.dump(cam_calib_results, open(pkl_file, "wb"))
+
+        return cam_calib_results
 
 
 def undistort(vid, cam_mtx, dist, framerate):
@@ -312,8 +334,10 @@ def main():
     vid_to_undistort = args.vid_to_undistort
     do_debug = args.debug
 
-    _, cam_mtx, dist, _, _ = calibrate_checkerboard(board_vid, m_corners, n_corners, 
-                                                    framerate=framerate, do_debug=do_debug) 
+    cam_calib_results = calibrate_checkerboard(board_vid, m_corners, n_corners, 
+                                               framerate=framerate, do_debug=do_debug) 
+
+    cam_mtx, dist = cam_calib_results["cam_mtx"], cam_calib_results["dist"]
 
     # TODO: use Path().rglob("*.mp4") to undistort multiple vids at once, then update docs: 
     # undistort(vid_to_undistort, cam_mtx, dist, framerate)
