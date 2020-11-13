@@ -112,12 +112,14 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
     In addition, saves at least a video of the labelled checkerboards.
     """
     
+    board_vid = expanduser(board_vid)
     assert(basename(board_vid) != "checkerboards.mp4"), "Rename 'checkerboards.mp4' to something else!"
 
     if Path(board_vid).is_file():
         assert(splitext(board_vid)[1] == ".mp4"), "`board_vid` must be an '.mp4' file!"
 
     output_vid = path.join(dirname(board_vid), "checkerboards.mp4")
+    pkl_file = path.join(dirname(board_vid), "cam_calib_results.pkl")
 
     if do_debug:
 
@@ -133,14 +135,15 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         if Path(output_vid).is_file():
             Path(output_vid).unlink()
 
-    pkl_file = path.join(dirname(board_vid), "cam_calib_results.pkl")
+        if Path(pkl_file).is_file():
+            Path(pkl_file).unlink()
 
     if Path(output_vid).is_file() and Path(pkl_file).is_file():
         
         print(f"{basename(output_vid)} already exists at {dirname(output_vid)}")
         print(f"reading {basename(pkl_file)} from {dirname(pkl_file)} ...")
         cam_calib_results = pickle.load(open(pkl_file, "rb")) 
-        msg = f"camera matrix: \n{cam_calib_results['cam_mtx']}\n\ndistance coefficients: \n{cam_calib_results['dist']}\n\nmean reprojection error: \n{cam_calib_results['mean_reproj_error']}"
+        msg = f"camera matrix: \n{cam_calib_results['cam_mtx']}\ndistortion coefficients: \n{cam_calib_results['dist']}\n\nmean reprojection error: \n{cam_calib_results['mean_reproj_error']}"
         print(msg)
 
         return cam_calib_results
@@ -179,7 +182,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
             
             for f,_ in enumerate(pbar):
                 
-                ret, frame = cap.read()
+                _, frame = cap.read()
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
                 # Find the chess board corners:
@@ -271,7 +274,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         mean_reproj_error = total_reproj_error / len(obj_points)
 
         # Output:
-        msg = f"camera matrix: \n{cam_mtx}\n\ndistance coefficients: \n{dist}\n\nmean reprojection error: \n{mean_reproj_error}"
+        msg = f"camera matrix: \n{cam_mtx}\ndistortion coefficients: \n{dist}\n\nmean reprojection error: \n{mean_reproj_error}"
         print(msg)
 
         cam_calib_results = {"ret": ret, "cam_mtx": cam_mtx, "dist": dist, "r_vecs": r_vecs, "t_vecs": t_vecs, "mean_reproj_error": mean_reproj_error}
@@ -286,39 +289,72 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 def undistort(vid, cam_mtx, dist, framerate):
 
     """
-    TODO: write out these docs 
+    Undistorts a video, given a camera matrix. 
+
+    Parameters:
+    -----------
+    vid (str): Path to input video to be distorted
+    cam_mtx (array): Camera matrix (3x3), as outputted by OpenCV's calibrateCamera() function.
+    dist (array): Input/output vector of distortion coefficients, as outputted by OpenCV's 
+        calibrationCamera() function.
+    framerate (int): Framerate with which `vid` was recorded
+
+    Returns:
+    --------
+    An undistorted video
     """
-    vid = expanduser(vid)
-    convert_vid_to_jpgs(vid, framerate)
-    jpgs_dir = path.join(dirname(vid), basename(splitext(vid)[0])) 
-    jpgs = [str(path.absolute()) for path in Path(jpgs_dir).rglob("*.jpg")]
 
-    undistorted_dir = path.join(dirname(vid), f"undistorted_{basename(splitext(vid)[0])}")
+    vid = expanduser(vid) 
+    assert(splitext(vid)[1] == ".mp4"), "`vid` must be an '.mp4' file!"
 
-    if Path(undistorted_dir).is_dir():
+    output_vid = f"{splitext(vid)[0]}_undistorted.mp4"
 
-        print(f"{basename(undistorted_dir)} already exists at {dirname(undistorted_dir)}. Skipping ...")
+    if Path(output_vid).is_file():
+
+        print(f"{basename(output_vid)} already exists at {dirname(output_vid)}. Skipping ...")
 
     else:
-        
-        mkdir(undistorted_dir)
-        print(f"Undistorting '{basename(vid)}' ...")
-    
-        for i, jpg in enumerate(jpgs):
 
-            img = cv2.imread(jpg)
-            h, w = img.shape[:2]
+        cap = cv2.VideoCapture(vid)
+
+        # Define the codec and create VideoWriter object
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
+        out = cv2.VideoWriter(filename=output_vid, 
+                              apiPreference=0, 
+                              fourcc=fourcc, 
+                              fps=int(framerate), 
+                              frameSize=(int(cap.get(3)),int(cap.get(4))),
+                              params=None) 
+
+        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        pbar = trange(frame_count)
+    
+        for f,_ in enumerate(pbar):
+
+            _, frame = cap.read()
+            h, w = frame.shape[:2]
 
             # Tailor the camera matrix: 
             new_cam_mtx, roi = cv2.getOptimalNewCameraMatrix(cam_mtx, dist, (w,h), 1, (w,h))
             
             # Undistort using the original and new cam matrices: 
-            undistorted = cv2.undistort(img, cam_mtx, dist, None, new_cam_mtx)
+            undistorted = cv2.undistort(frame, cam_mtx, dist, None, new_cam_mtx)
 
-            # Crop the image
+            # Crop the image: 
             x,y,w,h = roi
             undistorted = undistorted[y:y+h, x:x+w]
-            cv2.imwrite(path.join(undistorted_dir, f"undistorted_{i:08d}.jpg"), undistorted) 
+
+            # Save:
+            out.write(undistorted) # TODO: Writes an empty video ...
+            pbar.set_description(f"undistorting {f} out of {frame_count} frames from {basename(vid)}")
+
+            # cv2.imshow("undistorted ...", undistorted) 
+            # if cv2.waitKey(1) & 0xFF == ord("q"):
+            #     break
+        
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
 
 
 def main():
@@ -350,9 +386,8 @@ def main():
                                                framerate=framerate, do_debug=do_debug) 
 
     cam_mtx, dist = cam_calib_results["cam_mtx"], cam_calib_results["dist"]
-
     # TODO: use Path().rglob("*.mp4") to undistort multiple vids at once, then update docs: 
-    # undistort(vid_to_undistort, cam_mtx, dist, framerate)
+    undistort(vid_to_undistort, cam_mtx, dist, framerate)
 
             
 if __name__ == "__main__":
