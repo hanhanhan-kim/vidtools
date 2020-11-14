@@ -35,13 +35,6 @@ def ask_yes_no(question, default="yes"):
     Returns:
     ---------
     bool
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
     """
 
     valid = {"yes": True, "y": True,
@@ -340,7 +333,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         cv2.destroyAllWindows()
 
         # CALIBRATE: 
-        print("Computing camera matrix from calibration data ...")
+        print("Computing camera matrix from calibration data. If many checkerboards were found, will take a long while ...")
         ret, cam_mtx, dist, r_vecs, t_vecs = cv2.calibrateCamera(obj_points, img_points, 
                                                                  gray.shape[::-1], 
                                                                  None, None)
@@ -358,7 +351,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         mean_reproj_error = total_reproj_error / len(obj_points)
 
         # Output:
-        msg = f"camera matrix: \n{cam_mtx}\ndistortion coefficients: \n{dist}\n\nmean reprojection error: \n{mean_reproj_error}"
+        msg = f"\ncamera matrix: \n{cam_mtx}\n\ndistortion coefficients: \n{dist}\n\nmean reprojection error: \n{mean_reproj_error}\n"
         print(msg)
 
         cam_calib_results = {"ret": ret, "cam_mtx": cam_mtx, "dist": dist, "r_vecs": r_vecs, "t_vecs": t_vecs, "mean_reproj_error": mean_reproj_error}
@@ -475,7 +468,7 @@ def undistort(vid, cam_mtx, dist, framerate, do_crop=True):
 
             # Save:
             out.write(undistorted) 
-            pbar.set_description(f"Undistorting {f} out of {frame_count} frames from {basename(vid)}")
+            pbar.set_description(f"Undistorting {f+1} out of {frame_count} frames from {basename(vid)}")
         
         cap.release()
         out.release()
@@ -523,7 +516,7 @@ def main():
     elif Path(to_undistort).is_dir():
 
         vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
-        vids = [vid for vid in vids if "calibration" or "undistorted" not in vid]
+        vids = [vid for vid in vids if "calibration" not in vid or "undistorted" not in vid]
 
         for vid in vids:
             undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)
