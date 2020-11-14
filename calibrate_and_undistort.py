@@ -131,8 +131,28 @@ def convert_vid_to_jpgs(vid, framerate, backend="opencv"):
             args = ["ffmpeg", "-i", vid, "-vf", f"fps={str(framerate)}", "frame_%08d.jpg"]
             equivalent_cmd = " ".join(args)
 
-            print(f"running command {equivalent_cmd} from {jpgs_dir}")
+            print(f"Running command {equivalent_cmd} from {jpgs_dir}")
             subprocess.run(args, cwd=jpgs_dir)
+
+
+def get_img_shape(img):
+
+    """
+    Get the shape of an image.
+
+    Parameters:
+    -----------
+    img (str): Path to an image
+
+    Returns:
+    ---------
+    A length-3 tuple of height, width, then channels. 
+    """
+
+    img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+    dims = img.shape
+
+    return dims
 
 
 def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_debug=True):
@@ -191,26 +211,20 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
     if Path(output_vid).is_file() and Path(pkl_file).is_file():
         
         print(f"{basename(output_vid)} already exists at {dirname(output_vid)}")
-        print(f"reading {basename(pkl_file)} from {dirname(pkl_file)} ...")
+        print(f"Reading {basename(pkl_file)} from {dirname(pkl_file)} ...")
         cam_calib_results = pickle.load(open(pkl_file, "rb")) 
-        msg = f"camera matrix: \n{cam_calib_results['cam_mtx']}\ndistortion coefficients: \n{cam_calib_results['dist']}\n\nmean reprojection error: \n{cam_calib_results['mean_reproj_error']}"
+        msg = f"camera matrix: \n{cam_calib_results['cam_mtx']}\n\ndistortion coefficients: \n{cam_calib_results['dist']}\n\nmean reprojection error: \n{cam_calib_results['mean_reproj_error']}\n"
         print(msg)
 
         return cam_calib_results
 
     elif not Path(output_vid).is_file() and not Path(pkl_file).is_file():
 
-        # Define the codec and create VideoWriter object
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
-        out = cv2.VideoWriter(filename=output_vid, 
-                              apiPreference=0, 
-                              fourcc=fourcc, 
-                              fps=int(framerate), 
-                              frameSize=(1920,1080), # TODO: make this a kwarg?
-                              params=None) 
+        # Define the codec:
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  
 
-        # FIND CORNERS:
-
+        # SET UP CORNER-FINDING:
+        # -----------------------
         # Termination criteria:
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
@@ -221,12 +235,20 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         # Arrays to store object points and image points from all the images: 
         obj_points = [] # 3d point in real world space
         img_points = [] # 2d points in image plane
+        # ------------------------
 
         i = 0
 
         if Path(board_vid).is_file():
 
             cap = cv2.VideoCapture(board_vid)
+            out = cv2.VideoWriter(filename=output_vid, 
+                                  apiPreference=0, 
+                                  fourcc=fourcc, 
+                                  fps=int(framerate), 
+                                  frameSize=(int(cap.get(3)), int(cap.get(4))),
+                                  params=None)
+
             frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             pbar = trange(frame_count)
             
@@ -260,7 +282,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
 
-                    pbar.set_description(f"found {i+1} checkerboards in {f+1}/{frame_count} frames") 
+                    pbar.set_description(f"Found {i+1} checkerboards in {f+1}/{frame_count} frames") 
                     cv2.waitKey(1) 
                     i += 1
 
@@ -269,6 +291,15 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         elif Path(board_vid).is_dir():
 
             jpgs = [str(path.absolute()) for path in Path(board_vid).rglob("*.jpg")]
+            jpg_shape = get_img_shape(jpgs[0]) # from first image
+
+            out = cv2.VideoWriter(filename=output_vid, 
+                                  apiPreference=0, 
+                                  fourcc=fourcc, 
+                                  fps=int(framerate), 
+                                  frameSize=(int(jpg_shape[1]), int(jpg_shape[0])),
+                                  params=None) 
+
             pbar = tqdm(jpgs)
             
             for f, jpg in enumerate(pbar):
@@ -316,11 +347,13 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
         # Get re-projection error: 
         total_reproj_error = 0
-        for obj_point, img_point, r_vec, t_vec in zip(obj_points, img_points, r_vecs, t_vecs):
+        pbar = tqdm(zip(obj_points, img_points, r_vecs, t_vecs), total=len(obj_points))
+        for obj_point, img_point, r_vec, t_vec in pbar:
 
             img_points_2, _ = cv2.projectPoints(obj_point, r_vec, t_vec, cam_mtx, dist)
             error = cv2.norm(img_point, img_points_2, cv2.NORM_L2) / len(img_points_2)
             total_reproj_error += np.abs(error)
+            pbar.set_description(f"Current total reprojection error is {total_reproj_error}")
 
         mean_reproj_error = total_reproj_error / len(obj_points)
 
@@ -442,7 +475,7 @@ def undistort(vid, cam_mtx, dist, framerate, do_crop=True):
 
             # Save:
             out.write(undistorted) 
-            pbar.set_description(f"undistorting {f} out of {frame_count} frames from {basename(vid)}")
+            pbar.set_description(f"Undistorting {f} out of {frame_count} frames from {basename(vid)}")
         
         cap.release()
         out.release()
@@ -490,7 +523,7 @@ def main():
     elif Path(to_undistort).is_dir():
 
         vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
-        vids = [vid for vid in vids if "calibration" not in vid]
+        vids = [vid for vid in vids if "calibration" or "undistorted" not in vid]
 
         for vid in vids:
             undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)
