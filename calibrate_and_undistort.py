@@ -21,6 +21,53 @@ import numpy as np
 from tqdm import tqdm, trange
 
 
+def ask_yes_no(question, default="yes"):
+
+    """
+    Ask a yes/no question and return the answer.
+
+    Parameters:
+    -----------
+    question (str): 
+    default: The presumed answer if the user hits only <Enter>. 
+        Can be either "yes", "no", or None. Default is "yes".
+
+    Returns:
+    ---------
+    bool
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+
+    valid = {"yes": True, "y": True,
+             "no": False, "n": False}
+
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError(f"invalid default answer: {default}")
+
+    while True:
+
+        print(f"{question} {prompt}")
+        choice = input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            print("Please respond with 'yes'/'y' or 'no'/'n'. \n")
+
+
 def convert_vid_to_jpgs(vid, framerate, backend="opencv"):
 
     """
@@ -124,8 +171,12 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
     if do_debug:
 
         # TODO: use raw_input for the below print message:
-        print("Debug mode is on, which means the script will actually delete things. Previous checkerboard outputs will be deleted ...")
-        boards_dir = path.join(dirname(board_vid), "checkerboards")
+        do_proceed = ask_yes_no("Debug mode is on, which means the script will actually delete things. Previous checkerboard outputs will be deleted. Continue?")
+        
+        if do_proceed:
+            boards_dir = path.join(dirname(board_vid), "checkerboards")
+        else:
+            exit("Quitting ...")
 
         if Path(boards_dir).is_dir():
             rmtree(boards_dir)
@@ -409,8 +460,8 @@ def main():
         help="Number of internal corners along the rows of the checkerboard")
     parser.add_argument("n_corners",
         help="Number of internal rows along the corners of the checkerboard")
-    parser.add_argument("vid_to_undistort",
-        help="Path to the target video for undistortion")
+    parser.add_argument("to_undistort",
+        help="Path to the target video or directory of target videos to undistort")
     parser.add_argument("--debug", "-d", action="store_true", 
         help="Show a live feed of the labelled checkerboards, and save a \
             directory of the labelled checkerboards as .jpgs")
@@ -422,7 +473,7 @@ def main():
     framerate = args.framerate
     m_corners = int(args.m_corners)
     n_corners = int(args.n_corners)
-    vid_to_undistort = args.vid_to_undistort
+    to_undistort = args.to_undistort
     do_debug = args.debug
     keep_dims = args.keep_dims
 
@@ -431,9 +482,15 @@ def main():
 
     cam_mtx, dist = cam_calib_results["cam_mtx"], cam_calib_results["dist"]
 
+    if Path(to_undistort).is_file():
+        undistort(to_undistort, cam_mtx, dist, framerate, do_crop=keep_dims)
+    
+    elif Path(to_undistort).is_dir():
 
-    # TODO: use Path().rglob("*.mp4") to undistort multiple vids at once, then update docs: 
-    undistort(vid_to_undistort, cam_mtx, dist, framerate, do_crop=keep_dims)
+        vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
+
+        for vid in vids:
+            undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)
 
             
 if __name__ == "__main__":
