@@ -170,7 +170,6 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
     if do_debug:
 
-        # TODO: use raw_input for the below print message:
         proceed_debug = ask_yes_no("Debug mode is on, which means the script will actually delete things. Previous checkerboard outputs will be deleted. Continue?")
         
         if proceed_debug:
