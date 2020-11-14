@@ -28,7 +28,7 @@ def ask_yes_no(question, default="yes"):
 
     Parameters:
     -----------
-    question (str): 
+    question (str): The question to ask the user. 
     default: The presumed answer if the user hits only <Enter>. 
         Can be either "yes", "no", or None. Default is "yes".
 
@@ -48,11 +48,11 @@ def ask_yes_no(question, default="yes"):
              "no": False, "n": False}
 
     if default is None:
-        prompt = " [y/n] "
+        prompt = "[y/n]\n"
     elif default == "yes":
-        prompt = " [Y/n] "
+        prompt = "[Y/n]\n"
     elif default == "no":
-        prompt = " [y/N] "
+        prompt = "[y/N]\n"
     else:
         raise ValueError(f"invalid default answer: {default}")
 
@@ -171,9 +171,9 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
     if do_debug:
 
         # TODO: use raw_input for the below print message:
-        do_proceed = ask_yes_no("Debug mode is on, which means the script will actually delete things. Previous checkerboard outputs will be deleted. Continue?")
+        proceed_debug = ask_yes_no("Debug mode is on, which means the script will actually delete things. Previous checkerboard outputs will be deleted. Continue?")
         
-        if do_proceed:
+        if proceed_debug:
             boards_dir = path.join(dirname(board_vid), "checkerboards")
         else:
             exit("Quitting ...")
