@@ -286,7 +286,44 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         exit(f"Only one of {basename(output_vid)} or {basename(pkl_file)} exists at {dirname(board_vid)}. \nPlease delete whichever one exists and re-run.") 
 
 
-def undistort(vid, cam_mtx, dist, framerate):
+def get_undistorted_cropped_dims(vid, cam_mtx, dist):
+
+    """
+    Gets the width and height of the undistorted video, after dead pixels are cropped out.
+
+    Parameters:
+    -----------
+    vid (str): Path to input video to be distorted
+    cam_mtx (array): Camera matrix (3x3), as outputted by OpenCV's calibrateCamera() function.
+    dist (array): Input/output vector of distortion coefficients, as outputted by OpenCV's 
+        calibrationCamera() function.
+
+    Returns:
+    --------
+    The width then height of the undistorted video, after dead pixels are cropped out.
+    """
+
+    vid = expanduser(vid) 
+    assert(splitext(vid)[1] == ".mp4"), "`vid` must be an '.mp4' file!"
+    
+    cap = cv2.VideoCapture(vid)
+
+    # Get the 0th frame:
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0) 
+    _, frame = cap.read()
+
+    h, w = frame.shape[:2]
+
+    # Tailor the camera matrix: 
+    _, roi = cv2.getOptimalNewCameraMatrix(cam_mtx, dist, (w,h), 1, (w,h))
+    
+    # Get dimensions of an undistorted frame (all frames have same dims):
+    _,_, width, height = roi
+
+    return width, height
+
+
+def undistort(vid, cam_mtx, dist, framerate, do_crop=True):
 
     """
     Undistorts a video, given a camera matrix. 
@@ -298,10 +335,12 @@ def undistort(vid, cam_mtx, dist, framerate):
     dist (array): Input/output vector of distortion coefficients, as outputted by OpenCV's 
         calibrationCamera() function.
     framerate (int): Framerate with which `vid` was recorded
+    do_crop (bool): If True, will crop the dead pixels out of the undistorted video output. 
+        Default is True.
 
     Returns:
     --------
-    An undistorted video
+    An undistorted video. 
     """
 
     vid = expanduser(vid) 
@@ -317,13 +356,18 @@ def undistort(vid, cam_mtx, dist, framerate):
 
         cap = cv2.VideoCapture(vid)
 
+        if do_crop:
+            width, height = get_undistorted_cropped_dims(vid, cam_mtx, dist)
+        else:
+            width, height = int(cap.get(3)), int(cap.get(4))
+
         # Define the codec and create VideoWriter object
         fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
         out = cv2.VideoWriter(filename=output_vid, 
                               apiPreference=0, 
                               fourcc=fourcc, 
                               fps=int(framerate), 
-                              frameSize=(int(cap.get(3)), int(cap.get(4))),
+                              frameSize=(width, height),
                               params=None) 
 
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -340,13 +384,10 @@ def undistort(vid, cam_mtx, dist, framerate):
             # Undistort using the original and new cam matrices: 
             undistorted = cv2.undistort(frame, cam_mtx, dist, None, new_cam_mtx)
 
-            # # Crop the image--only works if saving to still images bc cropping results in non-standard w and h vid formats: 
-            # x,y,w,h = roi
-            # undistorted = undistorted[y:y+h, x:x+w]
+            if do_crop:
 
-            # cv2.imshow("undistorted ...", undistorted) 
-            # if cv2.waitKey(1) & 0xFF == ord("q"):
-            #     break
+                x,y,w,h = roi
+                undistorted = undistorted[y:y+h, x:x+w]
 
             # Save:
             out.write(undistorted) 
@@ -372,7 +413,9 @@ def main():
         help="Path to the target video for undistortion")
     parser.add_argument("--debug", "-d", action="store_true", 
         help="Show a live feed of the labelled checkerboards, and save a \
-            directory of the labelled checkerboards as .jpgs.")
+            directory of the labelled checkerboards as .jpgs")
+    parser.add_argument("--keep_dims", "-kd", action="store_false",
+        help="Does not crop dead pixels out of the undistorted video outputs")
     args = parser.parse_args()
 
     board_vid = expanduser(args.board_vid)
@@ -381,13 +424,16 @@ def main():
     n_corners = int(args.n_corners)
     vid_to_undistort = args.vid_to_undistort
     do_debug = args.debug
+    keep_dims = args.keep_dims
 
     cam_calib_results = calibrate_checkerboard(board_vid, m_corners, n_corners, 
                                                framerate=framerate, do_debug=do_debug) 
 
     cam_mtx, dist = cam_calib_results["cam_mtx"], cam_calib_results["dist"]
+
+
     # TODO: use Path().rglob("*.mp4") to undistort multiple vids at once, then update docs: 
-    undistort(vid_to_undistort, cam_mtx, dist, framerate)
+    undistort(vid_to_undistort, cam_mtx, dist, framerate, do_crop=keep_dims)
 
             
 if __name__ == "__main__":
