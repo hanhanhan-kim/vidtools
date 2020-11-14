@@ -309,6 +309,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         cv2.destroyAllWindows()
 
         # CALIBRATE: 
+        print("Computing camera matrix from calibration data ...")
         ret, cam_mtx, dist, r_vecs, t_vecs = cv2.calibrateCamera(obj_points, img_points, 
                                                                  gray.shape[::-1], 
                                                                  None, None)
@@ -460,7 +461,9 @@ def main():
     parser.add_argument("n_corners",
         help="Number of internal rows along the corners of the checkerboard")
     parser.add_argument("to_undistort",
-        help="Path to the target video or directory of target videos to undistort")
+        help="Path to the target video or directory of target videos to undistort. \
+            If path to a directory of target videos, will NOT undistort videos \
+            with the substring 'calibration'.")
     parser.add_argument("--debug", "-d", action="store_true", 
         help="Show a live feed of the labelled checkerboards, and save a \
             directory of the labelled checkerboards as .jpgs")
@@ -487,6 +490,7 @@ def main():
     elif Path(to_undistort).is_dir():
 
         vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
+        vids = [vid for vid in vids if "calibration" not in vid]
 
         for vid in vids:
             undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)
