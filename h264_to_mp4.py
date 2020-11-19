@@ -2,7 +2,8 @@
 
 """
 Batch convert .h264 files to .mp4.
-Can output the .mp4 file in monochrome.  
+Can output the .mp4 file in monochrome. 
+Will not overwrite existing videos. 
 """
 
 import subprocess
@@ -26,7 +27,7 @@ def main():
 
     root = expanduser(args.root)
     framerate = str(args.framerate)
-    mono = args.mono
+    is_mono = args.mono
     vids = [str(path.absolute()) for path in Path(root).rglob("*.h264")]
 
     for vid in vids:
@@ -40,7 +41,7 @@ def main():
 
         else:
 
-            if not mono:
+            if not is_mono:
                     
                 # Convert:
                 args = ["ffmpeg", "-framerate", framerate, "-i", vid, "-c", "copy", output_vid]
