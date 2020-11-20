@@ -5,6 +5,7 @@ Undistorts videos by calibrating a checkerboard .mp4 video or a
 folder of checkerboard .jpg images. 
 The number of internal corners on the checkerboard's rows and columns 
 are interchangeable. 
+Does not overwrite files, unless in debug mode (-d). 
 """
 
 import subprocess
@@ -183,7 +184,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
     if do_debug:
 
-        proceed_debug = ask_yes_no("Debug mode is on, which means the script will actually delete things. Previous checkerboard outputs will be deleted. Continue?")
+        proceed_debug = ask_yes_no(f"Debug mode is on, which means the script will actually delete things. Previous {basename(output_vid)} and {basename(pkl_file)} outputs will be deleted. Continue?")
         
         if proceed_debug:
             boards_dir = path.join(dirname(board_vid), "checkerboards")
@@ -216,7 +217,7 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         # Define the codec:
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")  
 
-        # SET UP CORNER-FINDING:
+        # Set up corner-finding:
         # -----------------------
         # Termination criteria:
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -325,14 +326,14 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
                         if cv2.waitKey(1) & 0xFF == ord("q"):
                             break
                     
-                    pbar.set_description(f"found {i+1} checkerboards in {f+1}/{len(jpgs)} frames") 
+                    pbar.set_description(f"Found {i+1} checkerboards in {f+1}/{len(jpgs)} frames") 
                     cv2.waitKey(1) 
                     i += 1
         
         out.release
         cv2.destroyAllWindows()
 
-        # CALIBRATE: 
+        # Calibrate: 
         print("Computing camera matrix from calibration data. If many checkerboards were found, will take a long while ...")
         ret, cam_mtx, dist, r_vecs, t_vecs = cv2.calibrateCamera(obj_points, img_points, 
                                                                  gray.shape[::-1], 
@@ -340,13 +341,11 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
 
         # Get re-projection error: 
         total_reproj_error = 0
-        pbar = tqdm(zip(obj_points, img_points, r_vecs, t_vecs), total=len(obj_points))
-        for obj_point, img_point, r_vec, t_vec in pbar:
+        for obj_point, img_point, r_vec, t_vec in zip(obj_points, img_points, r_vecs, t_vecs):
 
             img_points_2, _ = cv2.projectPoints(obj_point, r_vec, t_vec, cam_mtx, dist)
             error = cv2.norm(img_point, img_points_2, cv2.NORM_L2) / len(img_points_2)
             total_reproj_error += np.abs(error)
-            pbar.set_description(f"Current total reprojection error is {total_reproj_error}")
 
         mean_reproj_error = total_reproj_error / len(obj_points)
 
@@ -468,7 +467,7 @@ def undistort(vid, cam_mtx, dist, framerate, do_crop=True):
 
             # Save:
             out.write(undistorted) 
-            pbar.set_description(f"Undistorting {f+1} out of {frame_count} frames from {basename(vid)}")
+            pbar.set_description(f"Undistorting {f+1}/{frame_count} frames from {basename(vid)}")
         
         cap.release()
         out.release()
@@ -485,11 +484,11 @@ def main():
     parser.add_argument("m_corners",
         help="Number of internal corners along the rows of the checkerboard")
     parser.add_argument("n_corners",
-        help="Number of internal rows along the corners of the checkerboard")
+        help="Number of internal corners along the columns of the checkerboard")
     parser.add_argument("to_undistort",
         help="Path to the target video or directory of target videos to undistort. \
             If path to a directory of target videos, will NOT undistort videos \
-            with the substring 'calibration'.")
+            with the substring 'calibration' or 'undistorted'.")
     parser.add_argument("--debug", "-d", action="store_true", 
         help="Show a live feed of the labelled checkerboards, and save a \
             directory of the labelled checkerboards as .jpgs")
@@ -515,8 +514,10 @@ def main():
     
     elif Path(to_undistort).is_dir():
 
+        # blocked = {"calibration", "undistorted"}
+
         vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
-        vids = [vid for vid in vids if "calibration" not in vid or "undistorted" not in vid]
+        vids = [vid for vid in vids if "calibration" not in vid and "undistorted" not in vid]
 
         for vid in vids:
             undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)
