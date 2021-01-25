@@ -7,6 +7,7 @@ Can record timestamps.
 
 import subprocess   
 import argparse
+from datetime import datetime
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
         help="Outputs a text file of the timestamps and frame numbers") 
     args = parser.parse_args()
     
-    name = args.name
+    name = args.name + f"_{datetime.now().strftime('%Y-%m-%d')}"
     millisecs = float(args.secs) * 1000 # Raspivid takes ms 
     timestamp= args.timestamp
 
