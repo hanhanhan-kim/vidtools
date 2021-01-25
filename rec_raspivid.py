@@ -21,7 +21,7 @@ def main():
         help="Outputs a text file of the timestamps and frame numbers") 
     args = parser.parse_args()
     
-    name = args.name + f"_{datetime.now().strftime('%Y-%m-%d')}"
+    name = args.name + f"_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
     millisecs = float(args.secs) * 1000 # Raspivid takes ms 
     timestamp= args.timestamp
 
