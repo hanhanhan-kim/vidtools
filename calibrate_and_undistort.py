@@ -476,22 +476,26 @@ def undistort(vid, cam_mtx, dist, framerate, do_crop=True):
 
 def main():
 
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, 
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("board_vid", 
-        help="Path to the input calibration video of the checkerboard")
+        help="Path to the input calibration video of the checkerboard.\n" 
+            "Must be called 'checkerboards', and be an .mp4 or a folder\n" 
+            "containing .jpgs. If a .pkl file for the calibration exists,\n" 
+            "it should be in the same directory that `board_vid` is in.\n")
     parser.add_argument("framerate",
-        help="Framerate (int)")
+        help="Framerate (int) in Hz")
     parser.add_argument("m_corners",
         help="Number of internal corners along the rows of the checkerboard")
     parser.add_argument("n_corners",
         help="Number of internal corners along the columns of the checkerboard")
     parser.add_argument("to_undistort",
-        help="Path to the target video or directory of target videos to undistort. \
-            If path to a directory of target videos, will NOT undistort videos \
-            with the substring 'calibration' or 'undistorted'.")
+        help="Path to the target video or directory of target videos to undistort. \n"
+            "If path to a directory of target videos, will NOT undistort videos \n"
+            "with the substring 'calibration' or 'undistorted'.")
     parser.add_argument("--debug", "-d", action="store_true", 
-        help="Show a live feed of the labelled checkerboards, and save a \
-            directory of the labelled checkerboards as .jpgs")
+        help="Show a live feed of the labelled checkerboards, and save a \n"
+            "directory of the labelled checkerboards as .jpgs")
     parser.add_argument("--keep_dims", "-kd", action="store_false",
         help="Does not crop dead pixels out of the undistorted video outputs")
     args = parser.parse_args()
@@ -513,8 +517,6 @@ def main():
         undistort(to_undistort, cam_mtx, dist, framerate, do_crop=keep_dims)
     
     elif Path(to_undistort).is_dir():
-
-        # blocked = {"calibration", "undistorted"}
 
         vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
         vids = [vid for vid in vids if "calibration" not in vid and "undistorted" not in vid]
