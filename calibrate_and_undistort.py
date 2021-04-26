@@ -480,7 +480,7 @@ def main():
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("board_vid", 
         help="Path to the input calibration video of the checkerboard.\n" 
-            "Must NOT be called 'checkerboards', and be an .mp4 or a folder \n" 
+            "Must NOT be called 'checkerboards'. Must be an .mp4 or a folder \n" 
             "containing .jpgs. If a .pkl file for the calibration exists, \n" 
             "it should be in the same directory that `board_vid` is in. \n")
     parser.add_argument("framerate",
