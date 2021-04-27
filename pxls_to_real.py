@@ -234,7 +234,7 @@ def main():
         raise ValueError("`path` must end in `.yaml`")
     
     with open(path) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
+        config = yaml.safe_load(f)
 
     real_len = config["pxls_to_real"]["real_board_square_len"]
     vid = expanduser(config["pxls_to_real"]["undistorted_board"])
@@ -250,7 +250,7 @@ def main():
                                       m_corners=m_corners,
                                       n_corners=n_corners,
                                       do_ask=do_ask)
-
+    
     mean_len = get_mean_edge_len_checkerboard(corners, m_corners, n_corners)
 
     print(f"The mean length of an edge of the checkerboard is {mean_len} pixels.")
