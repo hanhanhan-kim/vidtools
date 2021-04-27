@@ -5,7 +5,7 @@ undistort:
   n_corners: 7
   target: /mnt/2TB/data_in/cashylinidae/tests/for_testing_scripts/calibration/
   do_debug: false
-  keep_dims: false
+  keep_dims: true # must be true, if the output is a checkerboard vid to be used in pxls_to_real
 
 pxls_to_real:
   real_board_square_len: 20 # real world units, e.g. mm

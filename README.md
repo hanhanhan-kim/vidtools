@@ -27,21 +27,21 @@ These scripts accept a path to a common  `.yaml` configuration file as their sol
 
 ### `undistort`
 
-- `board_vid` (string): Path to the input calibration video of the checkerboard. Must _not_ be called `checkerboards`. Must be an `.mp4` file or a folder of `.jpg`s. If a `.pkl` file for the calibration already exists, it should be in the same directory that the `board_vid` video is in.
+- `board` (string): Path to the input calibration video of the checkerboard. Must _not_ be called `checkerboards`. Must be an `.mp4` file or a folder of `.jpg`s. If a `.pkl` file for the calibration already exists, it should be in the same directory that the `board_vid` video is in.
 - `framerate` (integer): Framerate of `board_vid` video and `target` videos, in Hz. If `board_vid` is a path to a directory of `.jpg`s, then `framerate` applies only to the videos specified by `target`. The fact that this argument accepts only a single integer means that both the `board_vid` and `target` videos must have the same framerate. 
 - `m_corners` (integer): Number of internal corners along the rows of the checkerboard.
 
 - `n_corners` (integer): Number of internal corners along the columns of the checkerboard.
 - `target` (string):  Path to the target video or directory of target videos to undistort. Videos must be `.mp4`. If a path to a directory of target videos is specified, the script will _not_ undistort videos with the substrings "checkerboard" or "undistorted". In other words, it won't undistort the (distorted) video of labeled checkerboards, and videos that have already been undistorted. 
 - `do_debug` (boolean): If true, will show a live feed of the labeled checkerboards, and will save a directory of the labeled checkerboards as `.jpg`s.  
-- `keep_dims` (boolean): If true, will not crop the dead pixels out of the undistorted video outputs. 
+- `keep_dims` (boolean): If true, will not crop the dead pixels out of the undistorted video outputs. **_Must be true if the output video is to be used as the `undistorted_board` argument in the `pxls_to_mm` script_**. Otherwise, makes more sense to set this argument to false. 
 
 This script returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
 
 ### `pxls_to_mm`
 
 - `real_board_squre_len`: The actual real-world length of an edge of a checkerboard square, e.g. in mm. 
-- `undistorted_board` (string): Path to an _undistorted_ video of the checkerboard. 
+- `undistorted_board` (string): Path to an _undistorted_ video of the checkerboard. Will be the output of the `undistort` script, where `keep_dims` is false. 
 
 - `framerate` (integer): Framerate of `undistorted_board` video in Hz. 
 

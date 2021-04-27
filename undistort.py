@@ -451,7 +451,7 @@ def main():
         raise ValueError("`path` must end in `.yaml`")
     
     with open(path) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
+        config = yaml.safe_load(f)
 
     board = expanduser(config["undistort"]["board"])
     framerate = int(config["undistort"]["framerate"])
@@ -460,7 +460,7 @@ def main():
     target = expanduser(config["undistort"]["target"])
     do_debug = config["undistort"]["do_debug"]
     keep_dims = config["undistort"]["keep_dims"]
-
+    
     cam_calib_results = calibrate_checkerboard(board, m_corners, n_corners, 
                                                framerate=framerate, do_debug=do_debug) 
 
