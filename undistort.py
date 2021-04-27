@@ -17,6 +17,7 @@ from pathlib import Path
 from shutil import rmtree
 from sys import exit
 
+import yaml
 import cv2
 import numpy as np
 from tqdm import tqdm, trange
@@ -440,37 +441,27 @@ def main():
 
     parser = argparse.ArgumentParser(description=__doc__, 
                                      formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("board_vid", 
-        help="Path to the input calibration video of the checkerboard.\n" 
-            "Must NOT be called 'checkerboards'. Must be an .mp4 or a folder \n" 
-            "containing .jpgs. If a .pkl file for the calibration exists, \n" 
-            "it should be in the same directory that `board_vid` is in. \n")
-    parser.add_argument("framerate",
-        help="Framerate (int) in Hz")
-    parser.add_argument("m_corners",
-        help="Number of internal corners along the rows of the checkerboard")
-    parser.add_argument("n_corners",
-        help="Number of internal corners along the columns of the checkerboard")
-    parser.add_argument("to_undistort",
-        help="Path to the target video or directory of target videos to undistort. \n"
-            "If path to a directory of target videos, will NOT undistort videos \n"
-            "with the substring 'calibration' or 'undistorted'.")
-    parser.add_argument("-d", "--debug", action="store_true", 
-        help="Show a live feed of the labelled checkerboards, and save a \n"
-            "directory of the labelled checkerboards as .jpgs")
-    parser.add_argument("-kd", "--keep_dims", action="store_false",
-        help="Does not crop dead pixels out of the undistorted video outputs")
+    arser.add_argument("yaml_path", 
+        help="Path to the .yaml file specifying the script's configuration.")
     args = parser.parse_args()
 
-    board_vid = expanduser(args.board_vid)
-    framerate = args.framerate
-    m_corners = int(args.m_corners)
-    n_corners = int(args.n_corners)
-    to_undistort = args.to_undistort
-    do_debug = args.debug
-    keep_dims = args.keep_dims
+    path = expanduser(args.yaml_path)
 
-    cam_calib_results = calibrate_checkerboard(board_vid, m_corners, n_corners, 
+    if not path.endswith(".yaml"):
+        raise ValueError("`path` must end in `.yaml`")
+    
+    with open(path) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
+    board = expanduser(config["undistort"]["board"])
+    framerate = int(config["undistort"]["framerate"])
+    m_corners = int(config["undistort"]["m_corners"])
+    n_corners = int(config["undistort"]["n_corners"])
+    to_undistort = expanduser(config["undistort"]["to_undistort"])
+    do_debug = config["undistort"]["debug"]
+    keep_dims = config["undistort"]["keep_dims"]
+
+    cam_calib_results = calibrate_checkerboard(board, m_corners, n_corners, 
                                                framerate=framerate, do_debug=do_debug) 
 
     cam_mtx, dist = cam_calib_results["cam_mtx"], cam_calib_results["dist"]
@@ -481,7 +472,7 @@ def main():
     elif Path(to_undistort).is_dir():
 
         vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
-        vids = [vid for vid in vids if "calibration" not in vid and "undistorted" not in vid]
+        vids = [vid for vid in vids if "checkerboards" not in vid and "undistorted" not in vid]
 
         for vid in vids:
             undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)

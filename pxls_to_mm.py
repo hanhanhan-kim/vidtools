@@ -8,13 +8,14 @@ calibrating an undistorted video of checkerboards.
 import argparse
 from os.path import expanduser
 
+import yaml
 import numpy as np
 import cv2
 
 from common import ask_yes_no, flatten_list
 
 
-def get_checkerboard_coords(vid, framerate, frames, m_corners, n_corners, do_ask=False):
+def get_checkerboard_coords(vid, framerate, m_corners, n_corners, frames=[], do_ask=False):
     
     """
     Finds the internal corners of a checkerboard. 
@@ -30,6 +31,7 @@ def get_checkerboard_coords(vid, framerate, frames, m_corners, n_corners, do_ask
         checkerboards. Accepts an iterable of ints, such as a list of ints, where 
         the ints specify the indices of the frames in the video. If the length of 
         the iterable is 0, will randomly draw 5 frames from the video. 
+        Default is an empty list. 
     m_corners (int): Number of internal corners along the rows of the checkerboard.
         Is interchangeable with `n_corners`. 
     n_corners (int): Number of internal corners along the columns of the checkerboard.
@@ -119,6 +121,12 @@ def get_checkerboard_coords(vid, framerate, frames, m_corners, n_corners, do_ask
 
 
 def get_dist(a, b):
+
+    """
+    Find distance between two cartesian points, a and b.
+    a is length 2 and b is length 2. 
+    """
+
     return np.sqrt( ((a[0]-b[0])**2) + ((a[1]-b[1])**2) )
 
 
@@ -215,47 +223,44 @@ def get_mean_edge_len_checkerboard(corners, m_corners, n_corners):
 
 def main():
 
-    # TODO: Switch to yaml or toml. 
-
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("board_vid", 
-        help="Path to an UNDISTORTED video of checkerboards.")
-
-    # TODO: Can't accept None as an alternative ... yaml might be able to answer this.
-    parser.add_argument("-f", "--frames", nargs="+", type=int, required=True,
-        help="Specifies the frames in which to look for checkerboards. Accepts an "
-            "iterable of ints, such as a list of ints, where the ints specify the "
-            "indices of the frames in the video. If the length of the iterable is 0, "
-            "will randomly draw 5 frames from the video.  This argument is REQUIRED.")
-
-    parser.add_argument("framerate",
-        help="Framerate (int) in Hz")
-    parser.add_argument("m_corners",
-        help="Number of internal corners along the rows of the checkerboard")
-    parser.add_argument("n_corners",
-        help="Number of internal corners along the columns of the checkerboard")
-    parser.add_argument("-v","--verify", action="store_true", 
-        help="Ask the user at every step to verify that the extracted frames \n"
-        "are suitable images in which to search for checkerboard corners.")
+    parser = argparse.ArgumentParser(description=__doc__, 
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("yaml_path", 
+        help="Path to the .yaml file specifying the script's configuration.")
     args = parser.parse_args()
 
-    board_vid = expanduser(args.board_vid)
+    path = expanduser(args.yaml_path)
 
-    framerate = args.framerate
-    frames = args.frames
-    m_corners = int(args.m_corners)
-    n_corners = int(args.n_corners)
-    do_ask = args.verify
+    if not path.endswith(".yaml"):
+        raise ValueError("`path` must end in `.yaml`")
+    
+    with open(path) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
-    corners = get_checkerboard_coords(vid=board_vid,
+    real_len = config["pxls_to_mm"]["real_board_square_len"]
+    vid = expanduser(config["pxls_to_mm"]["undistorted_board"])
+    frames = config["pxls_to_mm"]["frames"]
+    framerate = int(config["pxls_to_mm"]["framerate"])
+    m_corners = int(config["pxls_to_mm"]["m_corners"])
+    n_corners = int(config["pxls_to_mm"]["n_corners"])
+    do_ask = config["pxls_to_mm"]["do_ask"]
+
+    corners = get_checkerboard_coords(vid=vid,
                                       frames=frames,
                                       framerate=framerate,
                                       m_corners=m_corners,
                                       n_corners=n_corners,
                                       do_ask=do_ask)
 
-    print(get_mean_edge_len_checkerboard(corners, m_corners, n_corners))
-    return get_mean_edge_len_checkerboard(corners, m_corners, n_corners)
+    mean_len = get_mean_edge_len_checkerboard(corners, m_corners, n_corners)
+
+    print(f"The mean length of an edge of the checkerboard is {mean_len} pixels.")
+
+    print("The real length to pixels ratio, rounded to the nearest 1000th is: \n"
+          f"{real_len} pixels / {mean_len:.3f}  real units = {(real_len / mean_len):.3f}")
+
+    # TODO: Save these values in a .pkl file in the same dir as `undistorted_board`
+    print("These values have been saved to `pxls_to_mm.pkl`.")
 
 
 if __name__ == "__main__":
