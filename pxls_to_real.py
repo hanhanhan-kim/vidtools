@@ -257,7 +257,6 @@ def main():
     mean_len = get_mean_edge_len_checkerboard(corners, m_corners, n_corners)
 
     print(f"The mean length of an edge of the checkerboard is {mean_len} pixels.")
-
     print("The real length to pixels ratio, rounded to the nearest 1000th is: \n"
           f"{real_len} real units / {mean_len:.3f} pixels = {(real_len/mean_len):.3f} real units / pixels")
 
@@ -266,7 +265,7 @@ def main():
 
     if Path(pkl_file).exists():
         q = "The `pxls_to_real.pkl` file already exists. Overwrite?"
-        if ask_yes_no(q): 
+        if ask_yes_no(q, default="no"): 
             pickle.dump(results, open(pkl_file, "wb"))
             print("The unrounded values have been saved to `pxls_to_real.pkl`.")
         else:
