@@ -40,3 +40,21 @@ def ask_yes_no(question, default="yes"):
             return valid[choice]
         else:
             print("Please respond with 'yes'/'y' or 'no'/'n'. \n")
+
+
+def flatten_list(list_of_lists):
+    
+    """
+    Flatten a list of lists into a list.
+    Parameters:
+    -----------
+    list_of_lists: A list of lists
+    Returns:
+    --------
+    A list.
+    """
+    
+    # Reach into each inner list and append into a new list: 
+    flat_list = [item for inner_list in list_of_lists for item in inner_list]
+
+    return flat_list
