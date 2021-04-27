@@ -6,7 +6,9 @@ calibrating an undistorted video of checkerboards.
 """
 
 import argparse
-from os.path import expanduser
+from os.path import expanduser, dirname, join
+from os import path
+import pickle
 
 import yaml
 import numpy as np
@@ -228,12 +230,12 @@ def main():
         help="Path to the .yaml file specifying the script's configuration.")
     args = parser.parse_args()
 
-    path = expanduser(args.yaml_path)
+    yaml_path = expanduser(args.yaml_path)
 
-    if not path.endswith(".yaml"):
+    if not yaml_path.endswith(".yaml"):
         raise ValueError("`path` must end in `.yaml`")
     
-    with open(path) as f:
+    with open(yaml_path) as f:
         config = yaml.safe_load(f)
 
     real_len = config["pxls_to_real"]["real_board_square_len"]
@@ -256,10 +258,12 @@ def main():
     print(f"The mean length of an edge of the checkerboard is {mean_len} pixels.")
 
     print("The real length to pixels ratio, rounded to the nearest 1000th is: \n"
-          f"{real_len} pixels / {mean_len:.3f}  real units = {(real_len / mean_len):.3f}")
+          f"{real_len} real units / {mean_len:.3f} pixels = {(real_len/mean_len):.3f} real units / pixels")
 
-    # TODO: Save these values in a .pkl file in the same dir as `undistorted_board`
-    print("These values have been saved to `pxls_to_real.pkl`.")
+    results = {"real_len": real_len, "mean_pxl_len": mean_len, "real/pxl": real_len/mean_len}
+    pkl_file = path.join(dirname(vid), "pxls_to_real.pkl")
+    pickle.dump(results, open(pkl_file, "wb"))
+    print("The unrounded values have been saved to `pxls_to_real.pkl`.")
 
 
 if __name__ == "__main__":
