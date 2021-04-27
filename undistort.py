@@ -455,10 +455,10 @@ def main():
         help="Path to the target video or directory of target videos to undistort. \n"
             "If path to a directory of target videos, will NOT undistort videos \n"
             "with the substring 'calibration' or 'undistorted'.")
-    parser.add_argument("--debug", "-d", action="store_true", 
+    parser.add_argument("-d", "--debug", action="store_true", 
         help="Show a live feed of the labelled checkerboards, and save a \n"
             "directory of the labelled checkerboards as .jpgs")
-    parser.add_argument("--keep_dims", "-kd", action="store_false",
+    parser.add_argument("-kd", "--keep_dims", action="store_false",
         help="Does not crop dead pixels out of the undistorted video outputs")
     args = parser.parse_args()
 
