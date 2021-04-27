@@ -8,6 +8,7 @@ calibrating an undistorted video of checkerboards.
 import argparse
 from os.path import expanduser, dirname, join
 from os import path
+from pathlib import Path
 import pickle
 
 import yaml
@@ -262,8 +263,18 @@ def main():
 
     results = {"real_len": real_len, "mean_pxl_len": mean_len, "real/pxl": real_len/mean_len}
     pkl_file = path.join(dirname(vid), "pxls_to_real.pkl")
-    pickle.dump(results, open(pkl_file, "wb"))
-    print("The unrounded values have been saved to `pxls_to_real.pkl`.")
+
+    if Path(pkl_file).exists():
+        q = "The `pxls_to_real.pkl` file already exists. Overwrite?"
+        if ask_yes_no(q): 
+            pickle.dump(results, open(pkl_file, "wb"))
+            print("The unrounded values have been saved to `pxls_to_real.pkl`.")
+        else:
+            exit("Exiting ...")
+    else:
+        pickle.dump(results, open(pkl_file, "wb"))
+        print("The unrounded values have been saved to `pxls_to_real.pkl`.")
+
 
 
 if __name__ == "__main__":
