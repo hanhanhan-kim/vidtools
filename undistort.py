@@ -441,7 +441,7 @@ def main():
 
     parser = argparse.ArgumentParser(description=__doc__, 
                                      formatter_class=argparse.RawTextHelpFormatter)
-    arser.add_argument("yaml_path", 
+    parser.add_argument("yaml_path", 
         help="Path to the .yaml file specifying the script's configuration.")
     args = parser.parse_args()
 
@@ -457,8 +457,8 @@ def main():
     framerate = int(config["undistort"]["framerate"])
     m_corners = int(config["undistort"]["m_corners"])
     n_corners = int(config["undistort"]["n_corners"])
-    to_undistort = expanduser(config["undistort"]["to_undistort"])
-    do_debug = config["undistort"]["debug"]
+    target = expanduser(config["undistort"]["target"])
+    do_debug = config["undistort"]["do_debug"]
     keep_dims = config["undistort"]["keep_dims"]
 
     cam_calib_results = calibrate_checkerboard(board, m_corners, n_corners, 
@@ -466,12 +466,12 @@ def main():
 
     cam_mtx, dist = cam_calib_results["cam_mtx"], cam_calib_results["dist"]
 
-    if Path(to_undistort).is_file():
-        undistort(to_undistort, cam_mtx, dist, framerate, do_crop=keep_dims)
+    if Path(target).is_file():
+        undistort(target, cam_mtx, dist, framerate, do_crop=keep_dims)
     
-    elif Path(to_undistort).is_dir():
+    elif Path(target).is_dir():
 
-        vids = [str(path.absolute()) for path in Path(to_undistort).rglob("*.mp4")]
+        vids = [str(path.absolute()) for path in Path(target).rglob("*.mp4")]
         vids = [vid for vid in vids if "checkerboards" not in vid and "undistorted" not in vid]
 
         for vid in vids:

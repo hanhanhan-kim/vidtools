@@ -28,15 +28,15 @@ These scripts accept a path to a common  `.yaml` configuration file as their sol
 ### `undistort`
 
 - `board_vid` (string): Path to the input calibration video of the checkerboard. Must _not_ be called `checkerboards`. Must be an `.mp4` file or a folder of `.jpg`s. If a `.pkl` file for the calibration already exists, it should be in the same directory that the `board_vid` video is in.
-- `framerate` (integer): Framerate of `board_vid` video and `to_undistort` videos, in Hz. If `board_vid` is a path to a directory of `.jpg`s, then `framerate` applies only to the videos specified by `to_undistort`. The fact that this argument accepts only a single integer means that both the `board_vid` and `to_undistort` videos must have the same framerate. 
+- `framerate` (integer): Framerate of `board_vid` video and `target` videos, in Hz. If `board_vid` is a path to a directory of `.jpg`s, then `framerate` applies only to the videos specified by `target`. The fact that this argument accepts only a single integer means that both the `board_vid` and `target` videos must have the same framerate. 
 - `m_corners` (integer): Number of internal corners along the rows of the checkerboard.
 
 - `n_corners` (integer): Number of internal corners along the columns of the checkerboard.
-- `to_undistort` (string):  Path to the target video or directory of target videos to undistort. If a path to a directory of target videos is specified, the script will _not_ undistort videos with the substrings "checkerboard" or "undistorted". In other words, it won't undistort videos that have already been undistorted. 
+- `target` (string):  Path to the target video or directory of target videos to undistort. Videos must be `.mp4`. If a path to a directory of target videos is specified, the script will _not_ undistort videos with the substrings "checkerboard" or "undistorted". In other words, it won't undistort the (distorted) video of labeled checkerboards, and videos that have already been undistorted. 
 - `do_debug` (boolean): If true, will show a live feed of the labeled checkerboards, and will save a directory of the labeled checkerboards as `.jpg`s.  
 - `keep_dims` (boolean): If true, will not crop the dead pixels out of the undistorted video outputs. 
 
-This script returns a fanciful video of the checkerboard video with labeled detected checkerboard corners, the undistorted videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the videos. Additional outputs will be returned if `do_debug` is true. 
+This script returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
 
 ### `pxls_to_mm`
 

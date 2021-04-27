@@ -3,7 +3,7 @@ undistort:
   framerate: 30
   m_corners: 6
   n_corners: 7
-  to_undistort: /mnt/2TB/data_in/cashylinidae/tests/for_testing_scripts
+  target: /mnt/2TB/data_in/cashylinidae/tests/for_testing_scripts/calibration/
   do_debug: false
   keep_dims: false
 
