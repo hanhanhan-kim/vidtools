@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Undistorts videos by calibrating a checkerboard .mp4 video or a 
 folder of checkerboard .jpg images. 
@@ -9,7 +7,6 @@ Does not overwrite files, unless in debug mode (-d).
 """
 
 import subprocess
-import argparse
 import pickle
 from os.path import splitext, expanduser, basename, dirname
 from os import path, mkdir
@@ -22,7 +19,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm, trange
 
-from common import ask_yes_no
+from .common import ask_yes_no
 
 
 def convert_vid_to_jpgs(vid, framerate, backend="opencv"):
@@ -437,21 +434,8 @@ def undistort(vid, cam_mtx, dist, framerate, do_crop=True):
         cv2.destroyAllWindows()
 
 
-def main():
-
-    parser = argparse.ArgumentParser(description=__doc__, 
-                                     formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("yaml_path", 
-        help="Path to the .yaml file specifying the script's configuration.")
-    args = parser.parse_args()
-
-    path = expanduser(args.yaml_path)
-
-    if not path.endswith(".yaml"):
-        raise ValueError("`path` must end in `.yaml`")
-    
-    with open(path) as f:
-        config = yaml.safe_load(f)
+# Formatted for click; config is a dict loaded from yaml:
+def main(config):
 
     board = expanduser(config["undistort"]["board"])
     framerate = int(config["undistort"]["framerate"])

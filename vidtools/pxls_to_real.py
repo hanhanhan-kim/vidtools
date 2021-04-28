@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
-
 """
 Converts pixel measurements into physical lengths, by 
 calibrating an undistorted video of checkerboards. 
 """
 
-import argparse
 from os.path import expanduser, dirname, join
 from os import path
 from pathlib import Path
@@ -15,7 +12,7 @@ import yaml
 import numpy as np
 import cv2
 
-from common import ask_yes_no, flatten_list
+from .common import ask_yes_no, flatten_list
 
 
 def get_checkerboard_coords(vid, framerate, m_corners, n_corners, frames=[], do_ask=False):
@@ -223,21 +220,8 @@ def get_mean_edge_len_checkerboard(corners, m_corners, n_corners):
                  + get_y_dists_checkerboard(corners, m_corners, n_corners))
 
 
-def main():
-
-    parser = argparse.ArgumentParser(description=__doc__, 
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("yaml_path", 
-        help="Path to the .yaml file specifying the script's configuration.")
-    args = parser.parse_args()
-
-    yaml_path = expanduser(args.yaml_path)
-
-    if not yaml_path.endswith(".yaml"):
-        raise ValueError("`path` must end in `.yaml`")
-    
-    with open(yaml_path) as f:
-        config = yaml.safe_load(f)
+# Formatted for click; config is a dict loaded from yaml:
+def main(config):
 
     real_len = config["pxls_to_real"]["real_board_square_len"]
     vid = expanduser(config["pxls_to_real"]["undistorted_board"])
@@ -273,7 +257,6 @@ def main():
     else:
         pickle.dump(results, open(pkl_file, "wb"))
         print("The unrounded values have been saved to `pxls_to_real.pkl`.")
-
 
 
 if __name__ == "__main__":
