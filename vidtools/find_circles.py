@@ -189,6 +189,7 @@ def main(config):
                                       do_ask=do_ask)
 
             results = get_mean_circle_info(all_circles)
+            print("mean circle:")
             pprint(results)
             pickle.dump(results, open(output_pkl, "wb"))
             print(f"The mean circle has been saved to {output_pkl} .")
