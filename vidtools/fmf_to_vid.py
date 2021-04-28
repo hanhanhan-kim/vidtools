@@ -7,8 +7,6 @@ before being compressed to the .avi or .mp4. Make sure the libx264 encoder is
 enabled in your FFMPEG installation. 
 """
 
-import skimage.io 
-import tqdm
 import os
 import shutil
 import glob
@@ -16,6 +14,8 @@ import sys
 import argparse
 from os.path import join
 
+import skimage.io 
+import tqdm
 import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 from ffmpy import FFmpeg
 

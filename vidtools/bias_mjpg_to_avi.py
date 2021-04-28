@@ -14,12 +14,13 @@ Only one index.txt file and its corresponding .mjpg image stack should be presen
 in a given directory.
 """
 
-import cv2
-import numpy as np
 import argparse
 import glob
 import os
 from os.path import join, split, splitext
+
+import cv2
+import numpy as np
 
 
 def read_indexfile(indexfile):
