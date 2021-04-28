@@ -40,15 +40,29 @@ Using `vidtools` is simple! From anywhere, type the following in the command lin
 vidtools
 ```
 
-Doing so will bring up the menu of possible options and commands. To execute a command, specify the command of interest after `vidtools`. For example, to run `print-config`:
+Doing so will bring up the menu of possible options and commands. To execute a command, specify the command of interest after `vidtools`. For example, to run the `print-config` command:
 
 ```bash
 vidtools print-config
 ```
 
-A single  `.yaml` configuration file provides the arguments for all of `vidtools`' commands. Each key in the `.yaml` file refers to a `vidtool` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtool` command. The keys for the `.yaml` file are listed below:
+The successful execution of a command requires filling out a single `.yaml` configuration file. The configuration file provides the arguments for all of `vidtools`' commands. By default, `vidtools` will look for a file called **`config.yaml`** in the directory from which you run a `vidtools` command. For this reason, I suggest that you name your `.yaml` file  `config.yaml`. Otherwise, you can specify a particular `.yaml` file like so:
 
-### `undistort`
+```
+vidtools --config <path/to/config.yaml> <command>
+```
+
+For example, if the `.yaml` file you want to use has the path `~/tmp/my_weird_config.yaml`, and you want to run the `undistort` command, you'd input:
+
+```bash
+vidtools --config ~/tmp/my_weird_config.yaml undistort
+```
+
+### The `.yaml` file 
+
+Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
+
+#### `undistort`
 
 - `board` (string): Path to the input calibration video of the checkerboard. Must _not_ be called `checkerboards`. Must be an `.mp4` file or a folder of `.jpg`s. If a `.pkl` file for the calibration already exists, it should be in the same directory that the `board_vid` video is in.
 - `framerate` (integer): Framerate of `board_vid` video and `target` videos, in Hz. If `board_vid` is a path to a directory of `.jpg`s, then `framerate` applies only to the videos specified by `target`. The fact that this argument accepts only a single integer means that both the `board_vid` and `target` videos must have the same framerate. 
@@ -61,7 +75,7 @@ A single  `.yaml` configuration file provides the arguments for all of `vidtools
 
 This command returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
 
-### `pxls_to_real`
+#### `pxls_to_real`
 
 - `real_board_squre_len`: The actual real-world length of an edge of a checkerboard square, e.g. in mm. 
 - `undistorted_board` (string): Path to an _undistorted_ video of the checkerboard. Will be the output of the `undistort` command, where `keep_dims` is false. 

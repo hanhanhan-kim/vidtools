@@ -6,13 +6,7 @@ import yaml
 
 pass_config = click.make_pass_decorator(dict)
 
-# DEFAULT_CONFIG = {
-#     "undistort": {
-#         "frame": 30
-#         "m_corners": 6
-#         "n_corners": 7
-#     }
-# }
+# TODO: add a DEFAULT_CONFIG ?
 
 def load_config(fname):
     if fname == None:
@@ -52,7 +46,7 @@ def get_pxls_to_real(config):
     from vidtools import pxls_to_real
     pxls_to_real.main(config)
 
-# TODO: BIG PROBLEM. can only call vidtools from the same dir as config.yaml ...
+# TODO: Turn bias_mjpg_to_avi, h264_to_mp4, and fmf_to_vid into cli commands 
 
 
 if __name__ == "__main__":
