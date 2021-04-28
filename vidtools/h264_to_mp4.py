@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Batch convert .h264 files to .mp4.
 Can output the .mp4 file in monochrome. 
@@ -7,27 +5,20 @@ Will not overwrite existing videos.
 """
 
 import subprocess
-import argparse
 from os.path import splitext, expanduser, basename
 from pathlib import Path
 
+import yaml
 import cv2
 
 
-def main():
+# Formatted for click; config is a dict loaded from yaml:
+def main(config):
 
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("root", 
-        help="Path to the root directory.")
-    parser.add_argument("framerate", nargs="?", default=30,
-        help="Framerate (int)")
-    parser.add_argument("-m","--mono", action="store_true",
-        help="Convert colour videos to monochrome with OpenCV")
-    args = parser.parse_args()
+    root = expanduser(config["h264_to_mp4"]["root"])
+    framerate = str(config["h264_to_mp4"]["framerate"])
+    do_mono = config["h264_to_mp4"]["do_mono"]
 
-    root = expanduser(args.root)
-    framerate = str(args.framerate)
-    is_mono = args.mono
     vids = [str(path.absolute()) for path in Path(root).rglob("*.h264")]
 
     for vid in vids:
@@ -41,7 +32,7 @@ def main():
 
         else:
 
-            if not is_mono:
+            if not do_mono:
                     
                 # Convert:
                 args = ["ffmpeg", "-framerate", framerate, "-i", vid, "-c", "copy", output_vid]

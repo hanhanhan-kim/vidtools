@@ -58,9 +58,19 @@ For example, if the `.yaml` file you want to use has the path `~/tmp/my_weird_co
 vidtools --config ~/tmp/my_weird_config.yaml undistort
 ```
 
+The outputs of `vidtools`' commands do not overwrite existing files, without first asking for user confirmation. 
+
 ### The `.yaml` file 
 
-Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
+Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
+
+#### `h264_to_mp4`
+
+- `root` (string): Path to the root directory; the directory that houses the target `.h264` videos. Is recursive.
+- `framerate` (integer): The framerate, in Hz, of the target `.h264` videos. Assumes that all the videos in the `root` directory and its recursive subdirectories have the same framerate. 
+- `do_mono` (boolean): If true, will also convert the videos to monochrome, with OpenCV. If false, will convert the videos, without recolouring, with FFmpeg. The OpenCV-based conversion generates a higher quality output, but takes longer. 
+
+This command returns converted `.mp4` videos, in the same directory as the input `.h264` videos. 
 
 #### `undistort`
 
@@ -69,7 +79,7 @@ Each key in the `.yaml` configuration file refers to a `vidtools` command. The v
 - `m_corners` (integer): Number of internal corners along the rows of the checkerboard.
 
 - `n_corners` (integer): Number of internal corners along the columns of the checkerboard.
-- `target` (string):  Path to the target video or directory of target videos to undistort. Videos must be `.mp4`. If a path to a directory of target videos is specified, the command will _not_ undistort videos with the substrings "checkerboard" or "undistorted". In other words, it won't undistort the (distorted) video of labeled checkerboards, and videos that have already been undistorted. 
+- `target` (string):  Path to the target video or directory of target videos to undistort. Videos must be `.mp4`. If a path to a directory of target videos is specified, the command will _not_ undistort videos with the substrings "checkerboard" or "undistorted". In other words, it won't undistort the (distorted) video of labeled checkerboards, and videos that have already been undistorted. Is recursive, if a path to a directory is specified. 
 - `do_debug` (boolean): If true, will show a live feed of the labeled checkerboards, and will save a directory of the labeled checkerboards as `.jpg`s.  
 - `keep_dims` (boolean): If true, will not crop the dead pixels out of the undistorted video outputs. **_Must be true if the output video is to be used as the `undistorted_board` argument in the `pxls_to_mm` command_**. Otherwise, makes more sense to set this argument to false. 
 
@@ -91,5 +101,7 @@ This command returns a fanciful video of the (still distorted) checkerboard vide
 - `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable images in which to search for checkerboard corners. 
 
 This command returns the ratio of pixels to real-world units in a `pxls_to_mm.pkl` file saved in the same directory as the `undistorted_board` video. 
+
+
 
 TODO: Reformat the remaining scripts to click-style commands and update docs here

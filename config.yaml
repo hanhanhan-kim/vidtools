@@ -15,3 +15,8 @@ pxls_to_real:
   n_corners: 7
   frames: []
   do_ask: false
+
+h264_to_mp4:
+  root: ~/tmp/
+  framerate: 30
+  do_mono: true # higher quality with opencv backend

@@ -34,6 +34,13 @@ def print_config(config):
 
 @cli.command()
 @pass_config
+def h264_to_mp4(config):
+    click.echo("Converting ...")
+    from vidtools import h264_to_mp4
+    h264_to_mp4.main(config)
+
+@cli.command()
+@pass_config
 def undistort(config):
     click.echo("Undistorting ...")
     from vidtools import undistort
@@ -46,7 +53,7 @@ def get_pxls_to_real(config):
     from vidtools import pxls_to_real
     pxls_to_real.main(config)
 
-# TODO: Turn bias_mjpg_to_avi, h264_to_mp4, and fmf_to_vid into cli commands 
+# TODO: Turn bias_mjpg_to_avi and fmf_to_vid into cli commands 
 
 
 if __name__ == "__main__":
