@@ -17,6 +17,7 @@ def load_config(fname):
             config = yaml.safe_load(f) 
     else:
         config = dict()
+        exit("You did not pass in a .yaml file! Please pass in a .yaml file.")
 
     return config
 
