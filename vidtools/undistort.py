@@ -14,7 +14,6 @@ from pathlib import Path
 from shutil import rmtree
 from sys import exit
 
-import yaml
 import cv2
 import numpy as np
 from tqdm import tqdm, trange

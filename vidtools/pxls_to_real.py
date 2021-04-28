@@ -8,7 +8,6 @@ from os import path
 from pathlib import Path
 import pickle
 
-import yaml
 import numpy as np
 import cv2
 

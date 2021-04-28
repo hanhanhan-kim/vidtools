@@ -1,3 +1,8 @@
+h264_to_mp4:
+  root: ~/tmp/
+  framerate: 30
+  do_mono: true # higher quality with opencv backend
+
 undistort:
   board: /mnt/2TB/data_in/cashylinidae/tests/for_testing_scripts/calibration/calibration.mp4
   framerate: 30
@@ -16,7 +21,13 @@ pxls_to_real:
   frames: []
   do_ask: false
 
-h264_to_mp4:
-  root: ~/tmp/
-  framerate: 30
-  do_mono: true # higher quality with opencv backend
+find_circles:
+  root: ~/tmp/test/
+  dp: 2
+  param1: 80
+  param2: 200
+  minDist: 140
+  minRadius: 400
+  maxRadius: 0
+  frames: []
+  do_ask: false

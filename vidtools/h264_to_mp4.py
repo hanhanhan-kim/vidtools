@@ -8,7 +8,6 @@ import subprocess
 from os.path import splitext, expanduser, basename
 from pathlib import Path
 
-import yaml
 import cv2
 
 

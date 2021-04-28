@@ -55,6 +55,13 @@ def get_pxls_to_real(config):
     click.echo("Calculating conversion factor ...")
     pxls_to_real.main(config)
 
+@cli.command()
+@pass_config
+def find_circles(config):
+    from vidtools import find_circles
+    click.echo("Finding circles ...")
+    find_circles.main(config)
+
 # TODO: Turn bias_mjpg_to_avi and fmf_to_vid into cli commands 
 
 
