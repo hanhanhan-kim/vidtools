@@ -60,8 +60,9 @@ def get_checkerboard_coords(vid, framerate, m_corners, n_corners, frames=[], do_
     else:
         samples = frames
     
+    samples = sorted(samples)
     imgs = []
-    for f in sorted(samples):
+    for f in samples:
         _, frame = cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         imgs.append(gray) # save imgs
@@ -106,6 +107,7 @@ def get_checkerboard_coords(vid, framerate, m_corners, n_corners, frames=[], do_
                 # Draw and display the corners:
                 detected = cv2.drawChessboardCorners(frame, (m_corners, n_corners), better_corners, do_ret)
                 
+                # TODO: FIX! I'm returning only the first frame, like an idiot ...
                 # Convert shape of (m*n, 1, 2) to (m*n, 2):
                 return np.squeeze(better_corners)
             
