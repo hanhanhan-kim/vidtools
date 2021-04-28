@@ -4,6 +4,7 @@ from pprint import pprint
 import click
 import yaml
 
+
 pass_config = click.make_pass_decorator(dict)
 
 # TODO: add a DEFAULT_CONFIG ?
@@ -36,22 +37,22 @@ def print_config(config):
 @cli.command()
 @pass_config
 def h264_to_mp4(config):
-    click.echo("Converting ...")
     from vidtools import h264_to_mp4
+    click.echo("Converting ...")
     h264_to_mp4.main(config)
 
 @cli.command()
 @pass_config
 def undistort(config):
-    click.echo("Undistorting ...")
     from vidtools import undistort
+    click.echo("Undistorting ...")
     undistort.main(config)
 
 @cli.command()
 @pass_config
 def get_pxls_to_real(config):
-    click.echo("Calculating conversion factor ...")
     from vidtools import pxls_to_real
+    click.echo("Calculating conversion factor ...")
     pxls_to_real.main(config)
 
 # TODO: Turn bias_mjpg_to_avi and fmf_to_vid into cli commands 
