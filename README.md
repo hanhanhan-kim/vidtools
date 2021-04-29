@@ -69,6 +69,14 @@ Each key in the `.yaml` configuration file refers to a `vidtools` command. The v
 <details><summary> Click for details. </summary>
 <br>
 
+This command prints the contents of the `.yaml` configuration file. 
+</details>
+
+#### `h264_to_mp4`
+
+<details><summary> Click for details. </summary>
+<br>
+
 This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome.
 
 - `root` (string): Path to the root directory; the directory that houses the target `.h264` videos. Is recursive.
