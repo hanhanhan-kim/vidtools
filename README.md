@@ -64,9 +64,9 @@ The outputs of `vidtools`' commands do not overwrite existing files, without fir
 
 Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
 
-#### <details><summary>`h264_to_mp4`</summary>
+#### `h264_to_mp4`
 
-This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome. 
+<details><summary> This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome. </summary>
 
 - `root` (string): Path to the root directory; the directory that houses the target `.h264` videos. Is recursive.
 - `framerate` (integer): The framerate, in Hz, of the target `.h264` videos. Assumes that all the videos in the `root` directory and its recursive subdirectories have the same framerate. 
