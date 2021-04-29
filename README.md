@@ -67,6 +67,7 @@ Each key in the `.yaml` configuration file refers to a `vidtools` command. The v
 #### `h264_to_mp4`
 
 <details><summary> Click for details. </summary>
+<br></br>
 
 This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome.
 
@@ -80,6 +81,7 @@ This command returns converted `.mp4` videos, in the same directory as the input
 #### `undistort`
 
 <details><summary> Click for details. </summary>
+<br></br>
 
 This command undistorts videos by calibrating a checkerboard `.mp4` video or a folder of checkerboard `.jpg` images. This command can take a long time, if a lot of checkerboards are found. For this reason, if you wish to cut on compute time, I recommend inputting a folder of a few checkerboard `.jpg` images, rather than a whole checkerboard `.mp4` video. The number of internal corners on the checkerboard's rows and columns are interchangeable. 
 
@@ -98,6 +100,7 @@ This command returns a fanciful video of the (still distorted) checkerboard vide
 #### `find_circles`
 
 <details><summary> Click for details. </summary>
+<br></br>
 
 This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a single mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video.
 
@@ -117,6 +120,7 @@ This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` v
 #### `pxls_to_real`
 
 <details><summary> Click for details. </summary>
+<br></br>
 
 This command converts pixel measurements to physical lengths, by calibrating an *undistorted* `.mp4` video of checkerboards.
 
