@@ -62,14 +62,17 @@ The outputs of `vidtools`' commands do not overwrite existing files, without fir
 
 ### The `.yaml` file 
 
-Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
+Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. 
+
+### Commands
+`vidtools`' commands and their respective `.yaml` file arguments are documented below:
 
 #### `print-config`
 
 <details><summary> Click for details. </summary>
 <br>
 
-This command prints the contents of the `.yaml` configuration file. 
+This command prints the contents of the `.yaml` configuration file. It does not have any `.yaml` parameters.
 </details>
 
 #### `h264-to-mp4`
@@ -77,7 +80,7 @@ This command prints the contents of the `.yaml` configuration file.
 <details><summary> Click for details. </summary>
 <br>
 
-This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome.
+This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome. Its `.yaml` parameters are:
 
 - `root` (string): Path to the root directory; the directory that houses the target `.h264` videos. Is recursive.
 - `framerate` (integer): The framerate, in Hz, of the target `.h264` videos. Assumes that all the videos in the `root` directory and its recursive subdirectories have the same framerate. 
@@ -91,12 +94,11 @@ This command returns converted `.mp4` videos, in the same directory as the input
 <details><summary> Click for details. </summary>
 <br>
 
-This command undistorts videos by calibrating a checkerboard `.mp4` video or a folder of checkerboard `.jpg` images. This command can take a long time, if a lot of checkerboards are found. For this reason, if you wish to cut on compute time, I recommend inputting a folder of a few checkerboard `.jpg` images, rather than a whole checkerboard `.mp4` video. The number of internal corners on the checkerboard's rows and columns are interchangeable. 
+This command undistorts videos by calibrating a checkerboard `.mp4` video or a folder of checkerboard `.jpg` images. This command can take a long time, if a lot of checkerboards are found. For this reason, if you wish to cut on compute time, I recommend inputting a folder of a few checkerboard `.jpg` images, rather than a whole checkerboard `.mp4` video. The number of internal corners on the checkerboard's rows and columns are interchangeable. Its `.yaml` parameters are:
 
 - `board` (string): Path to the input calibration video of the checkerboard. Must _not_ be called `checkerboards`. Must be an `.mp4` file or a folder of `.jpg`s. If a `.pkl` file for the calibration already exists, it should be in the same directory that the `board_vid` video is in.
 - `framerate` (integer): Framerate of `board_vid` video and `target` videos, in Hz. If `board_vid` is a path to a directory of `.jpg`s, then `framerate` applies only to the videos specified by `target`. The fact that this argument accepts only a single integer means that both the `board_vid` and `target` videos must have the same framerate. 
 - `m_corners` (integer): Number of internal corners along the rows of the checkerboard.
-
 - `n_corners` (integer): Number of internal corners along the columns of the checkerboard.
 - `target` (string):  Path to the target video or directory of target videos to undistort. Videos must be `.mp4`. If a path to a directory of target videos is specified, the command will _not_ undistort videos with the substrings "checkerboard" or "undistorted". In other words, it won't undistort the (distorted) video of labeled checkerboards, and videos that have already been undistorted. Is recursive, if a path to a directory is specified. 
 - `do_debug` (boolean): If true, will show a live feed of the labeled checkerboards, and will save a directory of the labeled checkerboards as `.jpg`s.  
@@ -110,7 +112,7 @@ This command returns a fanciful video of the (still distorted) checkerboard vide
 <details><summary> Click for details. </summary>
 <br>
 
-This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a single mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video.
+This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a _single_ mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. Its `.yaml` parameters are:
 
 - `root` (string): Path to the root directory; the directory that houses the target `.mp4` videos. Is recursive.
 - `dp` (integer): The image resolution over the accumulator resolution. See the OpenCV docs for details.
@@ -130,8 +132,7 @@ This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` v
 <details><summary> Click for details. </summary>
 <br>
 
-This command converts pixel measurements to physical lengths, by calibrating an *undistorted* `.mp4` video of checkerboards.
-
+This command converts pixel measurements to physical lengths, by calibrating an *undistorted* `.mp4` video of checkerboards. Its `.yaml` parameters are:
 
 - `real_board_squre_len`: The actual real-world length of an edge of a checkerboard square, e.g. in mm. 
 - `undistorted_board` (string): Path to an _undistorted_ video of the checkerboard. Will be the output of the `undistort` command, where `keep_dims` is false. 
