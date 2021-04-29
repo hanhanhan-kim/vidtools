@@ -133,7 +133,7 @@ def get_dist(a, b):
     return np.sqrt( ((a[0]-b[0])**2) + ((a[1]-b[1])**2) )
 
 
-def get_x_dists_checkerboard(all_corners, m_corners, n_corners):
+def get_x_dists_checkerboards(all_corners, m_corners, n_corners):
     
     """
     Get the distance, in pixels, of each square's row edge, in the checkerboard. 
@@ -168,7 +168,7 @@ def get_x_dists_checkerboard(all_corners, m_corners, n_corners):
     return flatten_list(all_dists)
 
 
-def get_y_dists_checkerboard(all_corners, m_corners, n_corners):
+def get_y_dists_checkerboards(all_corners, m_corners, n_corners):
     
     """
     Get the distance, in pixels, of each square's column edge, in the checkerboard. 
@@ -235,8 +235,8 @@ def get_mean_edge_len_checkerboard(all_corners, m_corners, n_corners):
     The mean edge length of a square from the checkerboard video. 
     """
 
-    return np.mean(get_x_dists_checkerboard(all_corners, m_corners, n_corners) \
-                 + get_y_dists_checkerboard(all_corners, m_corners, n_corners))
+    return np.mean(get_x_dists_checkerboards(all_corners, m_corners, n_corners) \
+                 + get_y_dists_checkerboards(all_corners, m_corners, n_corners))
 
 
 # Formatted for click; config is a dict loaded from yaml:
