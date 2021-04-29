@@ -64,7 +64,7 @@ The outputs of `vidtools`' commands do not overwrite existing files, without fir
 
 Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
 
-#### `h264_to_mp4`
+#### `print-config`
 
 <details><summary> Click for details. </summary>
 <br>
@@ -72,7 +72,7 @@ Each key in the `.yaml` configuration file refers to a `vidtools` command. The v
 This command prints the contents of the `.yaml` configuration file. 
 </details>
 
-#### `h264_to_mp4`
+#### `h264-to-mp4`
 
 <details><summary> Click for details. </summary>
 <br>
@@ -105,7 +105,7 @@ This command undistorts videos by calibrating a checkerboard `.mp4` video or a f
 This command returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target `.mp4` videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
 </details>
 
-#### `find_circles`
+#### `find-circles`
 
 <details><summary> Click for details. </summary>
 <br>
@@ -125,7 +125,7 @@ This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/
 This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. 
 </details>
 
-#### `pxls_to_real`
+#### `pxls-to-real`
 
 <details><summary> Click for details. </summary>
 <br>
