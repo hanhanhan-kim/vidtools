@@ -64,7 +64,7 @@ The outputs of `vidtools`' commands do not overwrite existing files, without fir
 
 Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
 
-<details><summary>#### `h264_to_mp4`</summary>
+#### <details><summary>`h264_to_mp4`</summary>
 
 This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome. 
 
