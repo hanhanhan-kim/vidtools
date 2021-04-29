@@ -105,26 +105,6 @@ This command undistorts videos by calibrating a checkerboard `.mp4` video or a f
 This command returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target `.mp4` videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
 </details>
 
-#### `find-circles`
-
-<details><summary> Click for details. </summary>
-<br>
-
-This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a _single_ mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. Its `.yaml` parameters are:
-
-- `root` (string): Path to the root directory; the directory that houses the target `.mp4` videos. Is recursive.
-- `dp` (integer): The image resolution over the accumulator resolution. See the OpenCV docs for details.
-- `param1` (integer): The highest threshold of the two passed to the Canny edge detector. See OpenCV docs for details.
-- `param2` (integer): The accumulator threshold for the circle centres at the detection stage. The smaller it is, the more false circles that may be detected. See OpenCV docs for details.
-- `minDist` (integer): Minimum distance between the centres of the detected circles, in pixels. If the parameter is too small, multiple neighbour circles may be falsely detected, in addition to the true one. See OpenCV docs for details. 
-- `minRadius` (integer): Minimum circle radius, in pixels. See OpenCV docs for details.
-- `maxRadius` (integer): Maximum circle radius, in pixels. See OpenCV docs for details. 
-- `frames` (iterable of ints): Specifies the frames in which to look for checkerboards. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `undistorted_board` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
-- `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable images in which to search for checkerboard corners. 
-
-This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. 
-</details>
-
 #### `pxls-to-real`
 
 <details><summary> Click for details. </summary>
@@ -146,6 +126,26 @@ This command converts pixel measurements to physical lengths, by calibrating an 
 - `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable images in which to search for checkerboard corners. 
 
 This command returns the ratio of pixels to real-world units in a `pxls_to_mm.pkl` file saved in the same directory as the `undistorted_board` video. 
+</details>
+
+#### `find-circles`
+
+<details><summary> Click for details. </summary>
+<br>
+
+This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a _single_ mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. Its `.yaml` parameters are:
+
+- `root` (string): Path to the root directory; the directory that houses the target `.mp4` videos. Is recursive.
+- `dp` (integer): The image resolution over the accumulator resolution. See the OpenCV docs for details.
+- `param1` (integer): The highest threshold of the two passed to the Canny edge detector. See OpenCV docs for details.
+- `param2` (integer): The accumulator threshold for the circle centres at the detection stage. The smaller it is, the more false circles that may be detected. See OpenCV docs for details.
+- `minDist` (integer): Minimum distance between the centres of the detected circles, in pixels. If the parameter is too small, multiple neighbour circles may be falsely detected, in addition to the true one. See OpenCV docs for details. 
+- `minRadius` (integer): Minimum circle radius, in pixels. See OpenCV docs for details.
+- `maxRadius` (integer): Maximum circle radius, in pixels. See OpenCV docs for details. 
+- `frames` (iterable of ints): Specifies the frames in which to look for checkerboards. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `undistorted_board` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
+- `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable images in which to search for checkerboard corners. 
+
+This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. 
 </details>
 
 
