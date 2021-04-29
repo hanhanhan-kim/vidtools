@@ -45,6 +45,7 @@ Doing so will bring up the menu of possible options and commands. To execute a c
 ```bash
 vidtools print-config
 ```
+### The `.yaml` file 
 
 The successful execution of a command requires filling out a single `.yaml` configuration file. The configuration file provides the arguments for all of `vidtools`' commands. By default, `vidtools` will look for a file called **`config.yaml`** in the directory from which you run a `vidtools` command. For this reason, I suggest that you name your `.yaml` file  `config.yaml`. Otherwise, you can specify a particular `.yaml` file like so:
 
@@ -58,13 +59,12 @@ For example, if the `.yaml` file you want to use has the path `~/tmp/my_weird_co
 vidtools --config ~/tmp/my_weird_config.yaml undistort
 ```
 
-The outputs of `vidtools`' commands do not overwrite existing files, without first asking for user confirmation. 
-
-### The `.yaml` file 
-
 Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. 
 
+The outputs of `vidtools`' commands never overwrite existing files, without first asking for user confirmation. 
+
 ### Commands
+
 `vidtools`' commands and their respective `.yaml` file arguments are documented below:
 
 #### `print-config`
