@@ -14,7 +14,7 @@ undistort:
 
 pxls_to_real:
   real_board_square_len: 20 # real world units, e.g. mm
-  undistorted_board: /mnt/2TB/data_in/cashylinidae/tests/for_testing_scripts/calibration/calibration_undistorted.mp4
+  undistorted_board: ~/tmp/calibration_undistorted.mp4
   framerate: 30 
   m_corners: 6
   n_corners: 7
@@ -29,5 +29,5 @@ find_circles:
   minDist: 140
   minRadius: 400
   maxRadius: 0
-  frames: []
+  frames: [0, 1000, 3000]
   do_ask: false

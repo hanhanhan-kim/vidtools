@@ -88,7 +88,8 @@ def get_checkerboard_coords(vid, framerate, m_corners, n_corners, frames=[], do_
         # Arrays to store object points and image points from all the images: 
         obj_points = [] # 3d point in real world space
         img_points = [] # 2d points in image plane
-                                                                   
+
+        all_corners = []                        
         for img in imgs:
         
             # Find the checkerboard corners:
@@ -106,13 +107,15 @@ def get_checkerboard_coords(vid, framerate, m_corners, n_corners, frames=[], do_
                 # Draw and display the corners:
                 detected = cv2.drawChessboardCorners(frame, (m_corners, n_corners), better_corners, do_ret)
                 
-                # TODO: FIX! I'm returning only the first frame, like an idiot ...
                 # Convert shape of (m*n, 1, 2) to (m*n, 2):
-                return np.squeeze(better_corners)
+                better_corners = np.squeeze(better_corners)
+                all_corners.append(better_corners)
             
             else:
                 print("No checkerboard corners were found.")
                 return None
+        
+        return all_corners
             
     else:
         exit("\nPlease re-run the script. Exiting ...")
@@ -130,17 +133,18 @@ def get_dist(a, b):
     return np.sqrt( ((a[0]-b[0])**2) + ((a[1]-b[1])**2) )
 
 
-def get_x_dists_checkerboard(corners, m_corners, n_corners):
+def get_x_dists_checkerboard(all_corners, m_corners, n_corners):
     
     """
     Get the distance, in pixels, of each square's row edge, in the checkerboard. 
     
     Parameters:
     -----------
-    corners: A numpy array that holds the [x,y] coordinates of the checkerboard corners.
-        Will have a shape of ((m*n), 2), where m and n are the number of internal corners 
-        along the rows and columns of the checkerboard, respectively. Will usually be 
-        shaped (42, 2). Will be the output of `get_checkerboard_coords()`. 
+    all_corners: A list of numpy arrays that holds the [x,y] coordinates of the 
+        checkerboards' corners. Each array will have a shape of ((m*n), 2), where m 
+        and n are the number of internal corners along the rows and columns of the 
+        checkerboard, respectively; will usually be shaped (42, 2). This arg will be 
+        the output of `get_checkerboard_coords()`. 
     m_corners (int): Number of internal corners along the rows of the checkerboard.
         Is interchangeable with `n_corners`. 
     n_corners (int): Number of internal corners along the columns of the checkerboard.
@@ -151,24 +155,31 @@ def get_x_dists_checkerboard(corners, m_corners, n_corners):
     A list of distances, in pixels. 
     """
     
-    return [get_dist(corners[i+1], corners[i]) 
-            for i,_ in enumerate(corners) 
-            # Don't go past the indices and 
-            # don't compute dist bw last and final cols of diff rows:
-            if (i < len(corners)-1) and ((i+1) % m_corners != 0)]
+    all_dists = []
+
+    for corners in all_corners:
+        dists = [get_dist(corners[i+1], corners[i]) 
+                 for i,_ in enumerate(corners) 
+                 # Don't go past the indices and 
+                 # don't compute dist bw last and final cols of diff rows:
+                 if (i < len(corners)-1) and ((i+1) % m_corners != 0)]
+        all_dists.append(dists)
+
+    return flatten_list(all_dists)
 
 
-def get_y_dists_checkerboard(corners, m_corners, n_corners):
+def get_y_dists_checkerboard(all_corners, m_corners, n_corners):
     
     """
     Get the distance, in pixels, of each square's column edge, in the checkerboard. 
     
     Parameters:
     -----------
-    corners: A numpy array that holds the [x,y] coordinates of the checkerboard corners.
-        Will have a shape of ((m*n), 2), where m and n are the number of internal corners 
-        along the rows and columns of the checkerboard, respectively. Will usually be 
-        shaped (42, 2). Will be the output of `get_checkerboard_coords()`. 
+    all_corners: A list of numpy arrays that holds the [x,y] coordinates of the 
+        checkerboards' corners. Each array will have a shape of ((m*n), 2), where m 
+        and n are the number of internal corners along the rows and columns of the 
+        checkerboard, respectively; will usually be shaped (42, 2). This arg will be 
+        the output of `get_checkerboard_coords()`. 
     m_corners (int): Number of internal corners along the rows of the checkerboard.
         Is interchangeable with `n_corners`. 
     n_corners (int): Number of internal corners along the columns of the checkerboard.
@@ -179,23 +190,29 @@ def get_y_dists_checkerboard(corners, m_corners, n_corners):
     A list of distances, in pixels. 
     """
     
-    all_col_edge_lens = []
-    
-    for i in range(m_corners):
-    
-        col_corners = corners[i::m_corners]
+    all_dists = []
+    for corners in all_corners:
 
-        col_edge_lens = [get_dist(col_corners[j+1], col_corners[j]) 
-                         for j,_ in enumerate(col_corners) 
-                         # Don't go past the indices:
-                         if (j < len(col_corners)-1)]
+        all_col_dists = []
+        for i in range(m_corners):
         
-        all_col_edge_lens.append(col_edge_lens)
+            col_corners = corners[i::m_corners]
+
+            col_dists = [get_dist(col_corners[j+1], col_corners[j]) 
+                        for j,_ in enumerate(col_corners) 
+                        # Don't go past the indices:
+                        if (j < len(col_corners)-1)]
+            
+            all_col_dists.append(col_dists)
         
-    return flatten_list(all_col_edge_lens)
+        all_col_dists = flatten_list(all_col_dists)
+
+        all_dists.append(all_col_dists)
+    
+    return flatten_list(all_dists)
 
 
-def get_mean_edge_len_checkerboard(corners, m_corners, n_corners):
+def get_mean_edge_len_checkerboard(all_corners, m_corners, n_corners):
 
     """
     Gets the mean edge length from an array of coordinates that specifies
@@ -203,10 +220,11 @@ def get_mean_edge_len_checkerboard(corners, m_corners, n_corners):
 
     Parameters:
     -----------
-    corners: A numpy array that holds the [x,y] coordinates of the checkerboard corners.
-        Will have a shape of ((m*n), 2), where m and n are the number of internal corners 
-        along the rows and columns of the checkerboard, respectively. Will usually be 
-        shaped (42, 2). Will be the output of `get_checkerboard_coords()`.
+    all_corners: A list of numpy arrays that holds the [x,y] coordinates of the 
+        checkerboards' corners. Each array will have a shape of ((m*n), 2), where m 
+        and n are the number of internal corners along the rows and columns of the 
+        checkerboard, respectively; will usually be shaped (42, 2). This arg will be 
+        the output of `get_checkerboard_coords()`. 
     m_corners (int): Number of internal corners along the rows of the checkerboard.
         Is interchangeable with `n_corners`. 
     n_corners (int): Number of internal corners along the columns of the checkerboard.
@@ -217,8 +235,8 @@ def get_mean_edge_len_checkerboard(corners, m_corners, n_corners):
     The mean edge length of a square from the checkerboard video. 
     """
 
-    return np.mean(get_x_dists_checkerboard(corners, m_corners, n_corners) \
-                 + get_y_dists_checkerboard(corners, m_corners, n_corners))
+    return np.mean(get_x_dists_checkerboard(all_corners, m_corners, n_corners) \
+                 + get_y_dists_checkerboard(all_corners, m_corners, n_corners))
 
 
 # Formatted for click; config is a dict loaded from yaml:
