@@ -64,7 +64,7 @@ The outputs of `vidtools`' commands do not overwrite existing files, without fir
 
 Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. The keys for the `.yaml` file are documented below:
 
-#### `h264_to_mp4`
+<details><summary>#### `h264_to_mp4`</summary>
 
 This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome. 
 
@@ -88,6 +88,7 @@ This command undistorts videos by calibrating a checkerboard `.mp4` video or a f
 - `keep_dims` (boolean): If true, will not crop the dead pixels out of the undistorted video outputs. **_Must be true if the output video is to be used as the `undistorted_board` argument in the `pxls_to_mm` command_**. Otherwise, makes more sense to set this argument to false. 
 
 This command returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target `.mp4` videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
+</details>
 
 #### `find_circles`
 
