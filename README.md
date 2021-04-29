@@ -61,11 +61,9 @@ vidtools --config ~/tmp/my_weird_config.yaml undistort
 
 Each key in the `.yaml` configuration file refers to a `vidtools` command. The value of each of these keys is a dictionary that specifies the parameters for that `vidtools` command. Make sure you do not have any trailing spaces in the `.yaml` file. An example `config.yaml` file is provided in the repository. 
 
-The outputs of `vidtools`' commands never overwrite existing files, without first asking for user confirmation. 
-
 ### Commands
 
-`vidtools`' commands and their respective `.yaml` file arguments are documented below:
+The outputs of `vidtools`' commands never overwrite existing files, without first asking for user confirmation. `vidtools`' commands and their respective `.yaml` file arguments are documented below:
 
 #### `print-config`
 
