@@ -66,8 +66,8 @@ Each key in the `.yaml` configuration file refers to a `vidtools` command. The v
 
 #### `h264_to_mp4`
 
-<details><summary> This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome. </summary>
-
+<details><summary> Click for details. </summary>
+This command batch converts `.h264` videos to `.mp4` videos. It can output the `.mp4` videos in monochrome.
 
 - `root` (string): Path to the root directory; the directory that houses the target `.h264` videos. Is recursive.
 - `framerate` (integer): The framerate, in Hz, of the target `.h264` videos. Assumes that all the videos in the `root` directory and its recursive subdirectories have the same framerate. 
@@ -78,8 +78,8 @@ This command returns converted `.mp4` videos, in the same directory as the input
 
 #### `undistort`
 
-<details><summary> This command undistorts videos by calibrating a checkerboard `.mp4` video or a folder of checkerboard `.jpg` images. This command can take a long time, if a lot of checkerboards are found. For this reason, if you wish to cut on compute time, I recommend inputting a folder of a few checkerboard `.jpg` images, rather than a whole checkerboard `.mp4` video. The number of internal corners on the checkerboard's rows and columns are interchangeable. </summary>
-
+<details><summary> Click for details. </summary>
+This command undistorts videos by calibrating a checkerboard `.mp4` video or a folder of checkerboard `.jpg` images. This command can take a long time, if a lot of checkerboards are found. For this reason, if you wish to cut on compute time, I recommend inputting a folder of a few checkerboard `.jpg` images, rather than a whole checkerboard `.mp4` video. The number of internal corners on the checkerboard's rows and columns are interchangeable. 
 
 - `board` (string): Path to the input calibration video of the checkerboard. Must _not_ be called `checkerboards`. Must be an `.mp4` file or a folder of `.jpg`s. If a `.pkl` file for the calibration already exists, it should be in the same directory that the `board_vid` video is in.
 - `framerate` (integer): Framerate of `board_vid` video and `target` videos, in Hz. If `board_vid` is a path to a directory of `.jpg`s, then `framerate` applies only to the videos specified by `target`. The fact that this argument accepts only a single integer means that both the `board_vid` and `target` videos must have the same framerate. 
@@ -95,8 +95,10 @@ This command returns a fanciful video of the (still distorted) checkerboard vide
 
 #### `find_circles`
 
-<details><summary> This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a single mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. </summary>
-
+<details><summary> Click for details. </summary>
+<p>
+This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a single mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video.
+</p>
 
 - `root` (string): Path to the root directory; the directory that houses the target `.mp4` videos. Is recursive.
 - `dp` (integer): The image resolution over the accumulator resolution. See the OpenCV docs for details.
@@ -113,8 +115,10 @@ This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` v
 
 #### `pxls_to_real`
 
-<details><summary> This command converts pixel measurements to physical lengths, by calibrating an *undistorted* `.mp4` video of checkerboards. </summary>
-
+<details><summary> Click for details. </summary>
+<p>
+This command converts pixel measurements to physical lengths, by calibrating an *undistorted* `.mp4` video of checkerboards.
+</p>
 
 - `real_board_squre_len`: The actual real-world length of an edge of a checkerboard square, e.g. in mm. 
 - `undistorted_board` (string): Path to an _undistorted_ video of the checkerboard. Will be the output of the `undistort` command, where `keep_dims` is false. 
