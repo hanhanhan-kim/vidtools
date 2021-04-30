@@ -244,6 +244,10 @@ def calibrate_checkerboard(board_vid, m_corners, n_corners, framerate=30, do_deb
         elif Path(board_vid).is_dir():
 
             jpgs = [str(path.absolute()) for path in Path(board_vid).rglob("*.jpg")]
+            
+            if len(jpgs) == 0:
+                raise ValueError("No '.jpg' images were found.")
+
             jpg_shape = get_img_shape(jpgs[0]) # from first image
 
             out = cv2.VideoWriter(filename=output_vid, 
@@ -456,6 +460,9 @@ def main(config):
 
         vids = [str(path.absolute()) for path in Path(target).rglob("*.mp4")]
         vids = [vid for vid in vids if "checkerboards" not in vid and "undistorted" not in vid]
+
+        if len(vids) == 0:
+            raise ValueError("No '.mp4' videos were found.")
 
         for vid in vids:
             undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)

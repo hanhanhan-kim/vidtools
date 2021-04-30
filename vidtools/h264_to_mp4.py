@@ -20,6 +20,9 @@ def main(config):
 
     vids = [str(path.absolute()) for path in Path(root).rglob("*.h264")]
 
+    if len(vids) == 0:
+        raise ValueError("No '.h264' videos were found.")
+
     for vid in vids:
         
         print(f"Processing {vid} ...")
