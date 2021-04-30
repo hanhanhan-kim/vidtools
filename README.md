@@ -133,9 +133,9 @@ This command returns the ratio of pixels to real-world units in a `pxls_to_mm.pk
 <details><summary> Click for details. </summary>
 <br>
 
-This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a _single_ mean circle for each video, in a directory of `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. Its `.yaml` parameters are:
+This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a _single_ mean circle for each undistorted video, in a directory of undistorted `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. Its `.yaml` parameters are:
 
-- `root` (string): Path to the root directory; the directory that houses the target `.mp4` videos. Is recursive.
+- `root` (string): Path to the root directory; the directory that houses the target `_undistorted.mp4` videos. i.e. videos with the suffix `_undistorted.mp4`. Is recursive.
 - `dp` (integer): The image resolution over the accumulator resolution. See the OpenCV docs for details.
 - `param1` (integer): The highest threshold of the two passed to the Canny edge detector. See OpenCV docs for details.
 - `param2` (integer): The accumulator threshold for the circle centres at the detection stage. The smaller it is, the more false circles that may be detected. See OpenCV docs for details.

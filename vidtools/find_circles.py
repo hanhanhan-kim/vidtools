@@ -167,7 +167,10 @@ def main(config):
     frames = config["find_circles"]["frames"]
     do_ask = config["find_circles"]["do_ask"]
 
-    vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4")]
+    vids = [str(path.absolute()) for path in Path(root).rglob("*_undistorted.mp4")]
+
+    if len(vids) == 0:
+        raise ValueError("No videos ending with '_undistorted.mp4' were found.")
 
     for vid in vids:
         

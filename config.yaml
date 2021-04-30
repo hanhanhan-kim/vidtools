@@ -22,12 +22,13 @@ pxls_to_real:
   do_ask: false
 
 find_circles:
-  root: ~/tmp/test/
+  root: /mnt/2TB/data_in/cashylinidae/data
+  # root: ~/tmp/test/
   dp: 2
   param1: 80
   param2: 200
   minDist: 140
   minRadius: 400
   maxRadius: 0
-  frames: [0, 1000, 3000]
+  frames: []
   do_ask: false
