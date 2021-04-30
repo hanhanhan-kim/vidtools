@@ -128,7 +128,7 @@ This command converts pixel measurements to physical lengths, by calibrating an 
 This command returns the ratio of pixels to real-world units in a `pxls_to_mm.pkl` file saved in the same directory as the `undistorted_board` video. 
 </details>
 
-#### `find-circles`
+#### `find-circle`
 
 <details><summary> Click for details. </summary>
 <br>
