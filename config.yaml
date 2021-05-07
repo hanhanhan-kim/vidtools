@@ -4,17 +4,17 @@ h264_to_mp4:
   do_mono: true # higher quality with opencv backend
 
 undistort:
-  board: /mnt/2TB/data_in/cashylinidae/tests/for_testing_scripts/calibration/calibration.mp4
+  board: /mnt/2TB/data_in/cashylinidae/tests/higher_arena/calib_files/calibration.mp4
   framerate: 30
   m_corners: 6
   n_corners: 7
-  target: /mnt/2TB/data_in/cashylinidae/tests/for_testing_scripts/calibration/
+  target: /mnt/2TB/data_in/cashylinidae/tests/higher_arena/calib_files/calibration.mp4
   do_debug: false
-  keep_dims: true # must be true, if the output is a checkerboard vid to be used in pxls_to_real
+  do_crop: true # must be true, if the output is a checkerboard vid to be used in pxls_to_real
 
 pxls_to_real:
   real_board_square_len: 20 # real world units, e.g. mm
-  undistorted_board: ~/tmp/calibration_undistorted.mp4
+  undistorted_board: /mnt/2TB/data_in/cashylinidae/tests/higher_arena/calib_files/calibration_undistorted.mp4
   framerate: 30 
   m_corners: 6
   n_corners: 7
@@ -22,7 +22,7 @@ pxls_to_real:
   do_ask: false
 
 find_circles:
-  root: /mnt/2TB/data_in/cashylinidae/data
+  root: /mnt/2TB/data_in/cashylinidae/tests/higher_arena/2021-01-01
   # root: ~/tmp/test/
   dp: 2
   param1: 80

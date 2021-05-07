@@ -446,7 +446,7 @@ def main(config):
     n_corners = int(config["undistort"]["n_corners"])
     target = expanduser(config["undistort"]["target"])
     do_debug = config["undistort"]["do_debug"]
-    keep_dims = config["undistort"]["keep_dims"]
+    do_crop = config["undistort"]["do_crop"]
     
     cam_calib_results = calibrate_checkerboard(board, m_corners, n_corners, 
                                                framerate=framerate, do_debug=do_debug) 
@@ -454,7 +454,7 @@ def main(config):
     cam_mtx, dist = cam_calib_results["cam_mtx"], cam_calib_results["dist"]
 
     if Path(target).is_file():
-        undistort(target, cam_mtx, dist, framerate, do_crop=keep_dims)
+        undistort(target, cam_mtx, dist, framerate, do_crop=do_crop)
     
     elif Path(target).is_dir():
 
@@ -465,7 +465,7 @@ def main(config):
             raise ValueError("No '.mp4' videos were found.")
 
         for vid in vids:
-            undistort(vid, cam_mtx, dist, framerate, do_crop=keep_dims)
+            undistort(vid, cam_mtx, dist, framerate, do_crop=do_crop)
 
             
 if __name__ == "__main__":

@@ -100,7 +100,7 @@ This command undistorts videos by calibrating a checkerboard `.mp4` video or a f
 - `n_corners` (integer): Number of internal corners along the columns of the checkerboard.
 - `target` (string):  Path to the target video or directory of target videos to undistort. Videos must be `.mp4`. If a path to a directory of target videos is specified, the command will _not_ undistort videos with the substrings "checkerboard" or "undistorted". In other words, it won't undistort the (distorted) video of labeled checkerboards, and videos that have already been undistorted. Is recursive, if a path to a directory is specified. 
 - `do_debug` (boolean): If true, will show a live feed of the labeled checkerboards, and will save a directory of the labeled checkerboards as `.jpg`s.  
-- `keep_dims` (boolean): If true, will not crop the dead pixels out of the undistorted video outputs. **_Must be true if the output video is to be used as the `undistorted_board` argument in the `pxls_to_mm` command_**. Otherwise, makes more sense to set this argument to false. 
+- `do_crop` (boolean): If true, will not crop the dead pixels out of the undistorted video outputs. **_Must be true if the output video is to be used as the `undistorted_board` argument in the `pxls_to_mm` command_**. 
 
 This command returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target `.mp4` videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
 </details>
@@ -110,10 +110,10 @@ This command returns a fanciful video of the (still distorted) checkerboard vide
 <details><summary> Click for details. </summary>
 <br>
 
-This command converts pixel measurements to physical lengths, by calibrating an *undistorted* `.mp4` video of checkerboards. Its `.yaml` parameters are:
+This command converts pixel measurements to physical lengths, by calibrating with an *undistorted* `.mp4` video of checkerboards. Its `.yaml` parameters are:
 
 - `real_board_squre_len`: The actual real-world length of an edge of a checkerboard square, e.g. in mm. 
-- `undistorted_board` (string): Path to an _undistorted_ video of the checkerboard. Will be the output of the `undistort` command, where `keep_dims` is false. 
+- `undistorted_board` (string): Path to an _undistorted_ video of the checkerboard. Will be the output of the `undistort` command, where `do_crop` is true. 
 
 - `framerate` (integer): Framerate of `undistorted_board` video in Hz. 
 
