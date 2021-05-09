@@ -164,7 +164,7 @@ def get_mean_circle_info(circle_info):
 # Formatted for click; config is a dict loaded from yaml:
 def main(config):
 
-    root = expanduser(config["find_circles"]["root"])
+    root = expanduser(config["find_circle"]["root"])
     dp = int(config["find_circles"]["dp"])
     param1 = int(config["find_circles"]["param1"])
     param2 = int(config["find_circles"]["param2"])
