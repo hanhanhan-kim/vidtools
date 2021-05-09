@@ -106,16 +106,12 @@ def find_circle(vid, dp=2, param1=80, param2=200, minDist=140,
                                        minRadius=minRadius, 
                                        maxRadius=0)
             
-            try: 
-                if circles == None:
-                    raise ValueError("No circles were found. Try adjusting the circle finding parameters, " 
-                                    "like `param1` and `param2`.")
-            # If `circles` are found, then `circles` is an array, which can't be tested for None, because
-            # the truth value of an array with more than one element is ambiguous, and gives ValueError:
-            except ValueError:
-                pass 
+            try:
+                circles = np.uint16(np.around(circles))
+            except TypeError as e:
+                raise Exception("No circles were found. Try adjusting the circle finding parameters, " 
+                                "like `param1` and `param2`.") from e
 
-            circles = np.uint16(np.around(circles))
             print(f"frame {samples[i]}: [x, y, radius] {np.squeeze(circles)}")
             
             for c in circles[0,:]:
