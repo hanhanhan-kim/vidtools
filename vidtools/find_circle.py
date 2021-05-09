@@ -124,13 +124,15 @@ def find_circle(vid, dp=2, param1=80, param2=200, minDist=140,
             cv2.waitKey(0)
             cv2.destroyAllWindows()
             
-            if len(circles) != 1:
+            circles = np.squeeze(circles)
+
+            if circles.ndim > 1 or len(circles) > 3:
                 raise ValueError("More than 1 circle was detected. Change parameters so that only 1 circle is detected.")
             
             f = samples[i]
-            x = np.squeeze(circles)[0]
-            y = np.squeeze(circles)[1]
-            r = np.squeeze(circles)[2]
+            x = circles[0]
+            y = circles[1]
+            r = circles[2]
             
             data = {"frame": f, "x (pxls)": x, "y (pxls)":y, "radius (pxls)":r}
             all_circles.append(data)
