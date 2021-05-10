@@ -74,6 +74,7 @@ def find_circle(vid, dp=2, param1=80, param2=200, minDist=140,
     imgs = []
     for f in samples:
         
+        cap.set(cv2.CAP_PROP_POS_FRAMES, f)
         _, frame = cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         blurred = cv2.medianBlur(gray, 5)
