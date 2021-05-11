@@ -3,7 +3,7 @@ Use Hough Circle Transform to find a single mean circle from a dir of videos.
 Typical use case is for identifying the boundaries of a circular arena. 
 """
 
-from os.path import expanduser, dirname, join, splitext, basename
+from os.path import expanduser, splitext, basename
 from pathlib import Path
 import pickle
 from pprint import pprint

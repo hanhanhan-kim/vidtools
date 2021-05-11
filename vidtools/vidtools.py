@@ -36,6 +36,13 @@ def print_config(config):
 
 @cli.command()
 @pass_config
+def vid_to_imgs(config):
+    from vidtools import vid_to_imgs
+    click.echo("Converting ...")
+    vid_to_imgs.main(config)
+
+@cli.command()
+@pass_config
 def h264_to_mp4(config):
     from vidtools import h264_to_mp4
     click.echo("Converting ...")
