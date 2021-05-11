@@ -68,19 +68,16 @@ def main(config):
     frames = config["vid_to_imgs"]["frames"]
     do_ask = config["vid_to_imgs"]["do_ask"]
 
-    # TODO: Support multiple extension types:
-    vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4")]
+    if Path(root).is_dir():
 
-    if len(vids) == 0:
-        raise ValueError("No videos ending with '.mp4' were found.")
+        vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4")]
 
-    # TODO: Support dir as well as single vid files as inputs
-    for vid in vids:
+        if len(vids) == 0:
+            raise ValueError("No videos ending with '.mp4' were found.")
 
-        print(f"Processing {vid} ...")
-
-        # TODO: Handle if already exists (overwrites)
-        # if Path(output_pkl).is_file():
-        #     print(f"{basename(output_pkl)} already exists. Skipping ...")
-
-        vid_to_imgs(vid=vid, frames=frames, ext=ext, do_ask=do_ask)
+        for vid in vids:
+            print(f"Processing {vid} ...")
+            vid_to_imgs(vid=vid, frames=frames, ext=ext, do_ask=do_ask)
+    
+    elif Path(root).is_file():
+        vid_to_imgs(vid=root, frames=frames, ext=ext, do_ask=do_ask)

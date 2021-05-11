@@ -1,5 +1,6 @@
 vid_to_imgs:
   root: ~/tmp/test
+  # root: ~/tmp/test/liomOcc_dalCor_45c_1_1_2021-01-01_undistorted.mp4
   ext: png
   frames: []
   do_ask: true
