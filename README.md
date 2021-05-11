@@ -95,7 +95,7 @@ This command returns converted `.mp4` videos, in the same directory as the input
 This command converts a subset of video frames into images. It can either convert a single `.mp4` video, or batch convert a directory of `.mp4` videos. Its `.yaml` parameters are:
 
 - `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `.mp4` videos, and is recursive.
-- `ext` (string): 
+- `ext` (string): The desired file extension for the output images. 
 - `frames` (iterable of ints): Specifies the frames for converting into images. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `.mp4` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
 - `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable for converting to images.
 
