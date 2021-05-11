@@ -1,8 +1,8 @@
 vid_to_imgs:
-  root: /Users/hankbook/Dropbox/_mysci/datasets/toy_behav/cashy/test/
+  root: ~/tmp/test
   ext: png
   frames: []
-  do_ask: false
+  do_ask: true
 
 h264_to_mp4:
   root: ~/tmp/
@@ -28,8 +28,8 @@ pxls_to_real:
   do_ask: false
 
 find_circle:
-  root: /mnt/2TB/data_in/cashylinidae/data
-  # root: ~/tmp/test/
+  # root: /mnt/2TB/data_in/cashylinidae/data
+  root: ~/tmp/test/
   dp: 2 # 1
   param1: 80 # 30 # 28 # 80
   param2: 200 # 70 # 45 # 200

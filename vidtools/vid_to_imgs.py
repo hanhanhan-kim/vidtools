@@ -1,4 +1,5 @@
-from os.path import expanduser, dirname, join, basename
+from os.path import expanduser, dirname, join, basename, splitext
+from os import mkdir
 from pathlib import Path
 
 import numpy as np
@@ -30,7 +31,8 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False):
     """
 
     vid = expanduser(vid)
-    imgs_dir = join(dirname(vid), basename(vid))
+    imgs_dir = splitext(vid)[0]
+    mkdir(imgs_dir)
 
     cap = cv2.VideoCapture(vid)
     
@@ -55,7 +57,7 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False):
             cv2.waitKey(0) # wait for any key
             cv2.destroyAllWindows()# DO NOT CLOSE VIA THE X ON THE GUI IN JUPYTER!
 
-        cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.jpg"), img)
+        cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.{ext}"), img)
 
 
 # Formatted for click; config is a dict loaded from yaml:
