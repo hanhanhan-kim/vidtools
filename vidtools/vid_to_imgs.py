@@ -1,4 +1,4 @@
-from os.path import expanduser, dirname, join, basename, splitext
+from os.path import expanduser, join, splitext
 from os import mkdir
 from pathlib import Path
 
