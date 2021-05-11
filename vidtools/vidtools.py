@@ -69,6 +69,13 @@ def find_circle(config):
     click.echo("Finding circles ...")
     find_circle.main(config)
 
+@cli.command()
+@pass_config
+def track_a_blob(config):
+    from vidtools import track_a_blob
+    click.echo("Detecting and tracking ...")
+    track_a_blob.main(config)
+
 # TODO: Turn bias_mjpg_to_avi and fmf_to_vid into cli commands 
 
 
