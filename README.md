@@ -159,5 +159,32 @@ This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` v
 </details>
 
 
+### `track-a-blob`
+
+<details><summary> Click for details. </summary>
+<br>
+
+This command uses OpenCV's simple blob detection algorithm to detect and track the centroids of blobs in a video. The typical use case is for identifying the coordinate positions of a single insect in a backlit arena. This detection algorithm does poorly under complex lighting conditions, or if tracking multiple interacting blobs. This command's `.yaml` parameters derive from OpenCV's [blob detection](https://docs.opencv.org/4.5.0/d8/da7/structcv_1_1SimpleBlobDetector_1_1Params.html#addd6c9f61049769bcc301005daf21637) and tracking parameters [TODO], and are:
+
+- `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `.mp4` videos, and is recursive.
+- `min_threshold` (float): The threshold pixel value from which the threshold increments start. 
+- `max_threshold` (float): The threshold pixel value at which the threshold increments end.
+- `min_area` (float or `None`): The minimum pixel area that a blob can have. Recall that `null` in a `.yaml` file denotes `None`. 
+- `max_area` (float or `None`): The maximum pixel area that a blob can have. Recall that `null` in a `.yaml` file denotes `None`. 
+- `min_circularity` (float or `None`): The minimum circularity that a blob can have. E.g. a regular hexagon is more circular than a regular pentagon. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
+- `max_circularity` (float or `None`): The maximum circularity that a blob can have. E.g. a regular hexagon is more circular than a regular pentagon. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
+- `min_convexity` (float or `None`): The minimum convexity that a blob can have. Convexity is the
+area of the blob divided by the blob's convex hull. Must be between 0 and 1. Recall that `null` in a `.yaml` file denotes `None`. 
+- `max_convexity` (float or `None`): The maximum convexity that a blob can have. Convexity is the
+area of the blob divided by the blob's convex hull. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
+- `min_inertia_ratio` (float or `None`): The minimum 'elongatedness' that a blob can have, where 
+the lowest value is a line, and the high value is a circle. Must be between 0 and 1. Recall that `null` in a `.yaml` file denotes `None`. 
+- `max_inertia_ratio` (float or `None`): The maximum 'elongatedness' that a blob can have, where 
+the lowest value is a line, and the high value is a circle. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
+
+
+This command returns a [TODO].
+</details>
+
 
 TODO: Reformat the remaining scripts to click-style commands and update docs here
