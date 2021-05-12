@@ -41,8 +41,8 @@ find_circle:
   do_ask: false
 
 track_a_blob:
-  # root: ~/tmp/test/
-  root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/test_imgs
+  root: ~/tmp/test/
+  # root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/test_imgs
   min_threshold: 1
   max_threshold: 255
   min_area: 20

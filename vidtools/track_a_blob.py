@@ -98,30 +98,52 @@ def detect_blob(img, blob_params):
 
     Returns:
     --------
-    
+    A dictionary of dictionaries, where the outer keys are integers denoting the blob indexes,
+    and the inner keys are 'x', 'y', and 'd', for which the values are the x,y pixel 
+    coordinates of that blob's centroid, and the diameter of that blob. 
+    In addition, shows tracked blobs and their bounding boxes. 
     """
 
-    g_img = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
+    g_img = cv2.imread(img, cv2.IMREAD_GRAYSCALE) 
     detector = init_blob_detector(**blob_params)
     keypoints = detector.detect(g_img)
 
-    # TODO: Check that only ONE blob is detected; this is the way to do:
-    print(len(keypoints))
+    print(f"{len(keypoints)} blob(s) detected ..." )
+
+    # Get keypoint (centroid) coordinates of blobs: 
+    blobs = {}
+    for i in range(len(keypoints)):
+
+        # The first index refers to the blob number:
+        x = keypoints[i].pt[0] 
+        y = keypoints[i].pt[1]
+        d = keypoints[i].size # dia
+
+        print(f"blob: {i}, x: {x}, y: {y}, d: {d}")
+        blobs[i] = {"x":x, "y":y, "d":d}
 
     # Draw detected blobs as red circles:
-    # The DRAW_MATCHES... flag ensures the size of the circle corresponds to the size of the blob
-    im_with_keypoints = cv2.drawKeypoints(g_img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    im_with_keypoints = cv2.drawKeypoints(g_img, keypoints, np.array([]), (0,0,255), 
+                                          cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS) # checks that blobs and circle sizes correspond
 
-    cv2.imshow("Keypoints", im_with_keypoints)
+    im_with_bboxes = im_with_keypoints
+    for k,v in blobs.items():
+        
+        scalar = 2 # adjust bbox size
+        top_left = (int(v["x"] - v["d"]/2 * scalar), int(v["y"] + v["d"]/2 * scalar))
+        bottom_right = (int(v["x"] + v["d"]/2 * scalar), int(v["y"] - v["d"]/2 * scalar))
+
+        im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1) 
+
+    cv2.imshow("Keypoints", im_with_bboxes)
     cv2.waitKey(0)
-
-    # TODO: Return keypoint (centroid) coordinates of blobs:
+    
+    return blobs
 
 
 def main(config):
 
     root = expanduser(config["track_a_blob"]["root"])
-
     all_params = config["track_a_blob"]
     blob_params = {k:v for (k,v) in all_params.items() if k not in set(["root"])}
 
@@ -138,10 +160,11 @@ def main(config):
             raise ValueError("No videos ending with '.png' were found.")
 
         for img in imgs:
-            print(f"Detecting blob in {img} ...")
+            print(f"\nDetecting blob(s) in {img} ...")
             detect_blob(img, blob_params)
 
     elif Path(root).is_file():
         detect_blob(root, blob_params)
+        
 
     # TODO: Implement tracking!!! 
