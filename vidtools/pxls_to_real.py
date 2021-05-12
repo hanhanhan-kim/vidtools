@@ -276,7 +276,3 @@ def main(config):
     else:
         pickle.dump(results, open(pkl_file, "wb"))
         print("The unrounded values have been saved to `pxls_to_real.pkl`.")
-
-
-if __name__ == "__main__":
-    main ()

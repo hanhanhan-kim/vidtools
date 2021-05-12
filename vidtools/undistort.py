@@ -466,7 +466,3 @@ def main(config):
 
         for vid in vids:
             undistort(vid, cam_mtx, dist, framerate, do_crop=do_crop)
-
-            
-if __name__ == "__main__":
-    main()

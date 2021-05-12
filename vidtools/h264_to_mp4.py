@@ -81,7 +81,3 @@ def main(config):
                 cv2.destroyAllWindows()
 
     print("Conversions complete!")            
-
-            
-if __name__ == "__main__":
-    main()
