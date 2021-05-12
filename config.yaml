@@ -56,7 +56,7 @@ track_blobs:
   min_inertia_ratio: null
   max_inertia_ratio: 0.5 
   # Tracker params:
-  max_age: 60
-  min_hits: 3
-  iou_thresh: 0.3
+  max_age: 60 # 1
+  min_hits: 3 # 3
+  iou_thresh: 0.3 # 0.2
   
