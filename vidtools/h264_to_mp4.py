@@ -53,10 +53,10 @@ def main(config):
                                       apiPreference=0, 
                                       fourcc=fourcc, 
                                       fps=int(framerate), 
-                                      frameSize=(1920,1080), # TODO: make this a kwarg?
+                                      frameSize=(int(cap.get(3)), int(cap.get(4))), 
                                       params=None)
 
-                while (cap.isOpened()):
+                while cap.isOpened():
 
                     ret, frame = cap.read()
 

@@ -59,7 +59,7 @@ def convert_vid_to_jpgs(vid, framerate, backend="opencv"):
             cap = cv2.VideoCapture(vid)
             
             i = 0
-            while (cap.isOpened()):
+            while cap.isOpened():
 
                 ret, frame = cap.read()
 
