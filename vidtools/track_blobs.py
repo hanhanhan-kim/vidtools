@@ -148,21 +148,11 @@ def detect_blobs(frame, blob_params):
     # im_with_keypoints = cv2.drawKeypoints(gray, keypoints, np.array([]), (0,0,255), 
     #                                       cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS) # checks that blobs and circle sizes correspond
 
-    # # Draw bounding boxes
-    # im_with_bboxes = im_with_keypoints
-    # for k,v in blobs.items():
-
-    #     im_with_bboxes = cv2.rectangle(im_with_bboxes, 
-    #                                    top_left, 
-    #                                    bottom_right, 
-    #                                    (0,255,0), # colour
-    #                                    1) # line thickness
-
-    return dets #, im_with_bboxes
+    return dets 
 
 
-def detect_blobs_in_vid(vid, framerate, blob_params):
-    
+def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
+
     """
     Detects blobs across a video. 
 
@@ -170,6 +160,10 @@ def detect_blobs_in_vid(vid, framerate, blob_params):
     -----------
     vid (str): Path to input .mp4 video.
     framerate (int): Framerate with which `vid` was recorded.
+    max_age (int): Maximum number of frames to keep a track alive without associated detections.
+    min_hits (int): Minimum number of associated detections before track is initialized.
+    iou_thresh (float): Minimum IOU (Intersection over Union) for match. 
+    blob_params (dict): A dictionary of parameters for `init_blob_detector()`. 
 
     Returns:
     --------
@@ -180,7 +174,7 @@ def detect_blobs_in_vid(vid, framerate, blob_params):
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
     # Initialize the SORT object:
-    mot_tracker = Sort() # TODO: pass in params from args
+    mot_tracker = Sort(max_age, min_hits, iou_thresh) # TODO: pass in params from args
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
@@ -197,23 +191,27 @@ def detect_blobs_in_vid(vid, framerate, blob_params):
 
         if ret:
             
+            # Add SORT tracker to detector:
             dets = detect_blobs(frame, blob_params)
-
             if len(dets) == 0:
                 dets = np.empty((0,5))
-
             trackers = mot_tracker.update(dets)
 
-            print(f"dets: {dets}")
-            print(f"trackers: {trackers}")
+            # Draw bounding boxes:
+            im_with_bboxes = frame
+            for tracker in trackers: # trackers: [[x1, y1, x2, y2, ID], [x1, y1, x2, y2, ID], ...]
+                
+                top_left = (int(tracker[0]), int(tracker[1])) 
+                bottom_right = (int(tracker[2]), int(tracker[3])) 
 
-            # cv2.imshow("blobs and bounding boxes ...", im_with_bboxes)
+                im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1)
+                
+            cv2.imshow("tracked objects ...", im_with_bboxes)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
 
-            # if cv2.waitKey(1) & 0xFF == ord("q"):
-            #     break
-
-            # # In OpenCV, images saved to video file must be 3 channels; save:
-            # out.write(im_with_bboxes)
+            # In OpenCV, images saved to video file must be 3 channels; save:
+            out.write(im_with_bboxes)
 
     cap.release()
     out.release()
@@ -224,13 +222,19 @@ def main(config):
 
     root = expanduser(config["track_blobs"]["root"])
     framerate = config["track_blobs"]["framerate"]
+    max_age = config["track_blobs"]["max_age"]
+    min_hits = config["track_blobs"]["min_hits"]
+    iou_thresh = config["track_blobs"]["iou_thresh"]
+
     all_params = config["track_blobs"]
-    blob_params = {k:v for (k,v) in all_params.items() if k not in set(["root", "framerate"])}
+    blob_params = {k:v for (k,v) in all_params.items() if k not in set(["root", "framerate", "max_age", "min_hits", "iou_thresh"])}
 
     # TODO: Add in a do_ask flag that draws a random sample of images from video and asks users if
     # they want to proceed. 
 
     if Path(root).is_dir():
+
+        # TODO: Make sure it doesn't re-track videos that already have the '_blobbed.mp4' suffix. 
 
         vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4")]
 
@@ -239,7 +243,7 @@ def main(config):
 
         for vid in vids:
             print(f"\nDetecting blob(s) in {vid} ...")
-            detect_blobs_in_vid(vid, framerate, blob_params)
+            track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params)
 
     elif Path(root).is_file():
-        detect_blobs_in_vid(root, framerate, blob_params)
+        track_blobs(root, framerate, max_age, min_hits, iou_thresh, blob_params)
