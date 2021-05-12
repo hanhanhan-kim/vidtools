@@ -6,7 +6,7 @@ vid_to_imgs:
   do_ask: true
 
 h264_to_mp4:
-  root: ~/tmp/
+  root: ~/tmp/test
   framerate: 30
   do_mono: true # higher quality with opencv backend
 
@@ -40,9 +40,10 @@ find_circle:
   frames: [] # [0]
   do_ask: false
 
-track_a_blob:
-  root: ~/tmp/test/
+track_blobs:
+  root: ~/tmp/test/test_vids
   # root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/test_imgs
+  framerate: 30
   min_threshold: 1
   max_threshold: 255
   min_area: 20

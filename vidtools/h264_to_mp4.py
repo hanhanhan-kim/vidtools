@@ -60,7 +60,7 @@ def main(config):
 
                     ret, frame = cap.read()
 
-                    if ret == True:
+                    if ret:
 
                         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                         # In OpenCV, images saved to video file must be three channels:

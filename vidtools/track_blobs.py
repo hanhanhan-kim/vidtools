@@ -1,4 +1,4 @@
-from os.path import expanduser
+from os.path import expanduser, splitext
 from pathlib import Path
 
 import cv2
@@ -86,27 +86,27 @@ def init_blob_detector(min_threshold=1, max_threshold=255,
     return detector 
 
 
-def detect_blob(img, blob_params):
+def detect_blobs(frame, blob_params):
 
     """
-    Detect blobs in an image. 
+    Detect blobs in a video frame. 
 
     Parameters:
     -----------
-    img (str): Path to the input image. 
+    frame (str): Frame from `cv2.VideoCapture(vid).read()`, where vid is the path to input video. 
     blob_params (dict): A dictionary of parameters for `init_blob_detector()`. 
 
     Returns:
     --------
-    A dictionary of dictionaries, where the outer keys are integers denoting the blob indexes,
+    1. A dictionary of dictionaries, where the outer keys are integers denoting the blob indexes,
     and the inner keys are 'x', 'y', and 'd', for which the values are the x,y pixel 
     coordinates of that blob's centroid, and the diameter of that blob. 
-    In addition, shows tracked blobs and their bounding boxes. 
+    2. The image matrix of the tracked blobs and their bounding boxes; can pass to `cv2.imshow()` 
     """
 
-    g_img = cv2.imread(img, cv2.IMREAD_GRAYSCALE) 
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
     detector = init_blob_detector(**blob_params)
-    keypoints = detector.detect(g_img)
+    keypoints = detector.detect(gray)
 
     print(f"{len(keypoints)} blob(s) detected ..." )
 
@@ -123,9 +123,10 @@ def detect_blob(img, blob_params):
         blobs[i] = {"x":x, "y":y, "d":d}
 
     # Draw detected blobs as red circles:
-    im_with_keypoints = cv2.drawKeypoints(g_img, keypoints, np.array([]), (0,0,255), 
+    im_with_keypoints = cv2.drawKeypoints(gray, keypoints, np.array([]), (0,0,255), 
                                           cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS) # checks that blobs and circle sizes correspond
 
+    # Make bounding boxes from centroid data and draw:
     im_with_bboxes = im_with_keypoints
     for k,v in blobs.items():
         
@@ -140,37 +141,80 @@ def detect_blob(img, blob_params):
                                        bottom_right, 
                                        (0,255,0), # colour
                                        1) # line thickness
-
-    cv2.imshow("Keypoints", im_with_bboxes)
-    cv2.waitKey(0)
     
-    return blobs
+    return blobs, im_with_bboxes
+
+
+def detect_blobs_in_vid(vid, framerate, blob_params):
+    
+    """
+    Detects blobs across a video. 
+
+    Parameters:
+    -----------
+    vid (str): Path to input .mp4 video.
+    framerate (int): Framerate with which `vid` was recorded.
+
+    Returns:
+    --------
+
+    """
+
+    cap = cv2.VideoCapture(vid)
+    output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
+
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
+    out = cv2.VideoWriter(filename=output_vid, 
+                            apiPreference=0, 
+                            fourcc=fourcc, 
+                            fps=int(framerate), 
+                            frameSize=(int(cap.get(3)), int(cap.get(4))), 
+                            params=None)
+
+    while cap.isOpened():
+
+        ret, frame = cap.read()
+
+        if ret:
+
+            blobs, im_with_bboxes = detect_blobs(frame, blob_params)
+            cv2.imshow("blobs and bounding boxes ...", im_with_bboxes)
+
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+
+            # In OpenCV, images saved to video file must be 3 channels; save:
+            out.write(im_with_bboxes)
+
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()
 
 
 def main(config):
 
-    root = expanduser(config["track_a_blob"]["root"])
-    all_params = config["track_a_blob"]
-    blob_params = {k:v for (k,v) in all_params.items() if k not in set(["root"])}
-
-    # TODO: Rework for video rather than images ... 
+    root = expanduser(config["track_blobs"]["root"])
+    framerate = config["track_blobs"]["framerate"]
+    all_params = config["track_blobs"]
+    blob_params = {k:v for (k,v) in all_params.items() if k not in set(["root", "framerate"])}
 
     # TODO: Add in a do_ask flag that draws a random sample of images from video and asks users if
     # they want to proceed. 
 
     if Path(root).is_dir():
 
-        imgs = [str(path.absolute()) for path in Path(root).rglob("*.png")]
+        vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4")]
 
-        if len(imgs) == 0:
-            raise ValueError("No videos ending with '.png' were found.")
+        if len(vids) == 0:
+            raise ValueError("No videos ending with '.mp4' were found.")
 
-        for img in imgs:
-            print(f"\nDetecting blob(s) in {img} ...")
-            detect_blob(img, blob_params)
+        for vid in vids:
+            print(f"\nDetecting blob(s) in {vid} ...")
+            detect_blobs_in_vid(vid, framerate, blob_params)
 
     elif Path(root).is_file():
-        detect_blob(root, blob_params)
+        detect_blobs_in_vid(root, framerate, blob_params)
         
 
     # TODO: Implement tracking!!! 
