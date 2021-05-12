@@ -7,6 +7,8 @@ name: vidtools
 dependencies:
   - python=3.8
   - pip
+  - conda-forge::filterpy=1.4.5
+  - conda-forge::lap=0.4.0
   - conda-forge::opencv=4.5.0
   - scikit-image
   - pyyaml

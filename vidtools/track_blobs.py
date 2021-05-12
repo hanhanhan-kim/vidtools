@@ -4,6 +4,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from vidtools.sort import *
+
 
 def init_blob_detector(min_threshold=1, max_threshold=255, 
                        min_area=None, max_area=None,
@@ -110,8 +112,8 @@ def detect_blobs(frame, blob_params):
 
     print(f"{len(keypoints)} blob(s) detected ..." )
 
-    # Get keypoint (centroid) coordinates of blobs: 
-    blobs = {}
+    # Get keypoint (centroid) coordinates and size of blobs: 
+    dets = []
     for i in range(len(keypoints)):
 
         # The first index refers to the blob number:
@@ -120,29 +122,39 @@ def detect_blobs(frame, blob_params):
         d = keypoints[i].size # dia
 
         print(f"blob: {i}, x: {x}, y: {y}, d: {d}")
-        blobs[i] = {"x":x, "y":y, "d":d}
 
-    # Draw detected blobs as red circles:
-    im_with_keypoints = cv2.drawKeypoints(gray, keypoints, np.array([]), (0,0,255), 
-                                          cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS) # checks that blobs and circle sizes correspond
-
-    # Make bounding boxes from centroid data and draw:
-    im_with_bboxes = im_with_keypoints
-    for k,v in blobs.items():
-        
+        # Make bounding boxes from centroid data:
         scalar = 2 # adjust bbox size
-        top_left = (int(v["x"] - v["d"]/2 * scalar), 
-                    int(v["y"] + v["d"]/2 * scalar))
-        bottom_right = (int(v["x"] + v["d"]/2 * scalar), 
-                        int(v["y"] - v["d"]/2 * scalar))
+        x1 = float(x - d/2 * scalar) # TODO FYI: CAST AS FLOAT FOR SORT, AND INT FOR OPENCV DRAWINGS
+        y1 = float(y + d/2 * scalar)
+        x2 = float(x + d/2 * scalar)
+        y2 = float(y - d/2 * scalar)
+        top_left = (x1, y1)
+        bottom_right = (x2, y2)
 
-        im_with_bboxes = cv2.rectangle(im_with_bboxes, 
-                                       top_left, 
-                                       bottom_right, 
-                                       (0,255,0), # colour
-                                       1) # line thickness
-    
-    return blobs, im_with_bboxes
+        # Format into a np array in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
+        # where 1 is the top left corner coords and 2 is the bottom right corner coords of the bbox.
+        # Format this way for the SORT tracker:
+        det = [x1, y1, x2, y2, 1.0] # provide a perfect dummy score of 1.0
+        dets.append(det)
+
+    dets = np.array(dets)
+
+    # # Draw detected blobs:
+    # im_with_keypoints = cv2.drawKeypoints(gray, keypoints, np.array([]), (0,0,255), 
+    #                                       cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS) # checks that blobs and circle sizes correspond
+
+    # # Draw bounding boxes
+    # im_with_bboxes = im_with_keypoints
+    # for k,v in blobs.items():
+
+    #     im_with_bboxes = cv2.rectangle(im_with_bboxes, 
+    #                                    top_left, 
+    #                                    bottom_right, 
+    #                                    (0,255,0), # colour
+    #                                    1) # line thickness
+
+    return dets #, im_with_bboxes
 
 
 def detect_blobs_in_vid(vid, framerate, blob_params):
@@ -157,11 +169,14 @@ def detect_blobs_in_vid(vid, framerate, blob_params):
 
     Returns:
     --------
-
+    Void; saves a video of the detected blobs. 
     """
 
     cap = cv2.VideoCapture(vid)
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
+
+    # Initialize the SORT object:
+    mot_tracker = Sort() # TODO: pass in params from args
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
@@ -177,15 +192,26 @@ def detect_blobs_in_vid(vid, framerate, blob_params):
         ret, frame = cap.read()
 
         if ret:
+            
+            dets = detect_blobs(frame, blob_params)
 
-            blobs, im_with_bboxes = detect_blobs(frame, blob_params)
-            cv2.imshow("blobs and bounding boxes ...", im_with_bboxes)
+            if len(dets) == 0:
+                dets = np.empty((0,5))
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            trackers = mot_tracker.update(dets)
 
-            # In OpenCV, images saved to video file must be 3 channels; save:
-            out.write(im_with_bboxes)
+            print(f"dets: {dets}")
+            print(f"trackers: {trackers}")
+
+            import ipdb; ipdb.set_trace()
+
+            # cv2.imshow("blobs and bounding boxes ...", im_with_bboxes)
+
+            # if cv2.waitKey(1) & 0xFF == ord("q"):
+            #     break
+
+            # # In OpenCV, images saved to video file must be 3 channels; save:
+            # out.write(im_with_bboxes)
 
     cap.release()
     out.release()
@@ -215,6 +241,3 @@ def main(config):
 
     elif Path(root).is_file():
         detect_blobs_in_vid(root, framerate, blob_params)
-        
-
-    # TODO: Implement tracking!!! 
