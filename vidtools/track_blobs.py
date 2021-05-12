@@ -130,10 +130,16 @@ def detect_blob(img, blob_params):
     for k,v in blobs.items():
         
         scalar = 2 # adjust bbox size
-        top_left = (int(v["x"] - v["d"]/2 * scalar), int(v["y"] + v["d"]/2 * scalar))
-        bottom_right = (int(v["x"] + v["d"]/2 * scalar), int(v["y"] - v["d"]/2 * scalar))
+        top_left = (int(v["x"] - v["d"]/2 * scalar), 
+                    int(v["y"] + v["d"]/2 * scalar))
+        bottom_right = (int(v["x"] + v["d"]/2 * scalar), 
+                        int(v["y"] - v["d"]/2 * scalar))
 
-        im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1) 
+        im_with_bboxes = cv2.rectangle(im_with_bboxes, 
+                                       top_left, 
+                                       bottom_right, 
+                                       (0,255,0), # colour
+                                       1) # line thickness
 
     cv2.imshow("Keypoints", im_with_bboxes)
     cv2.waitKey(0)
