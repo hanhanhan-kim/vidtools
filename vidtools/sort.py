@@ -81,6 +81,8 @@ def convert_x_to_bbox(x,score=None):
   """
   Takes a bounding box in the centre form [x,y,s,r] and returns it in the form
     [x1,y1,x2,y2] where x1,y1 is the top left and x2,y2 is the bottom right
+
+  HK: I think the comments aren't right here. x1,y1 is bottom left, and x2,y2 is top right. 
   """
   w = np.sqrt(x[2] * x[3])
   h = x[2] / w
@@ -241,12 +243,20 @@ class Sort(object):
     i = len(self.trackers)
     for trk in reversed(self.trackers):
         d = trk.get_state()[0]
+
+        # print(f"ret: {ret}")
+        # print(f"trk.time_since_update < 1: {trk.time_since_update < 1}")
+        # print(f"trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits: {trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits}")
+
         if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
           ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
         i -= 1
         # remove dead tracklet
         if(trk.time_since_update > self.max_age):
           self.trackers.pop(i)
+
+    # print(f"ret: {ret} \n")
+
     if(len(ret)>0):
       return np.concatenate(ret)
     return np.empty((0,5))
