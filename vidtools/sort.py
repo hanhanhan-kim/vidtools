@@ -248,7 +248,8 @@ class Sort(object):
         # print(f"trk.time_since_update < 1: {trk.time_since_update < 1}")
         # print(f"trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits: {trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits}")
 
-        if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
+        # Changed based on: https://github.com/abewley/sort/issues/17#issuecomment-333049246
+        if (trk.time_since_update < self.max_age+1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
           ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
         i -= 1
         # remove dead tracklet
