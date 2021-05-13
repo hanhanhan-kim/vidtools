@@ -125,16 +125,13 @@ def detect_blobs(frame, blob_params):
 
         # Make bounding boxes from centroid data:
         scalar = 2.5 # adjust bbox size
-        x1 = float(x - d/2 * scalar) # TODO FYI: CAST AS FLOAT FOR SORT, AND INT FOR OPENCV DRAWINGS
+        x1 = float(x - d/2 * scalar) 
         y1 = float(y - d/2 * scalar)
         y2 = float(y + d/2 * scalar)
         x2 = float(x + d/2 * scalar)
 
         # print(f"is x1 < x2: {x1 < x2}")
         # p rint(f"is y1 < y2: {y1 < y2}")
-
-        bottom_left = (x1, y1)
-        top_right = (x2, y2)
 
         # Format into a np array in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
         # where 1 is the bottom left corner coords and 2 is the top right corner coords of the bbox.
@@ -239,15 +236,22 @@ def main(config):
 
     if Path(root).is_dir():
 
-        # TODO: Make sure it doesn't re-track videos that already have the '_blobbed.mp4' suffix. 
-
-        vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4")]
+        vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4") 
+                if "_blobbed.mp4" not in str(path.absolute())]
 
         if len(vids) == 0:
-            raise ValueError("No videos ending with '.mp4' were found.")
+            raise ValueError("No untracked videos ending with '.mp4' were found.")
 
         for vid in vids:
+            
+            output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
+
+            if Path(output_vid).exists():
+                print(f"{output_vid} already exists. Skipping ...")
+                continue
+
             print(f"\nDetecting blob(s) in {vid} ...")
+
             track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params)
 
     elif Path(root).is_file():
