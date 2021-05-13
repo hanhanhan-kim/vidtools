@@ -124,7 +124,7 @@ def detect_blobs(frame, blob_params):
         print(f"blob: {i}, x: {x}, y: {y}, d: {d}")
 
         # Make bounding boxes from centroid data:
-        scalar = 2.5 # adjust bbox size
+        scalar = 2 # adjust bbox size
         x1 = float(x - d/2 * scalar) 
         y1 = float(y - d/2 * scalar)
         y2 = float(y + d/2 * scalar)
@@ -203,16 +203,16 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
 
                 # Format: img mtx, box top left corner, bbox bottom right corner, colour, thickness
                 im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1)
-                # # Format: img mtx, text, posn, font type, font size, colour, thickness
-                # im_with_txt = cv2.putText(im_with_bboxes, f"ID: {tracker[-1]}", top_left, cv2.FONT_HERSHEY_SIMPLEX, 1, (209, 80, 0, 255), 3) 
+                # Format: img mtx, text, posn, font type, font size, colour, thickness
+                im_with_txt = cv2.putText(im_with_bboxes, f"ID: {int(tracker[-1])}", top_left, cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 1) 
             
             # TODO: Add flag to show stream or not:
-            cv2.imshow("tracked objects ...", im_with_bboxes) # im_with_txt
+            cv2.imshow("tracked objects ...", im_with_txt) # im_with_txt
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
             # In OpenCV, images saved to video file must be 3 channels; save:
-            out.write(im_with_bboxes)
+            out.write(im_with_txt)
 
     cap.release()
     out.release()
