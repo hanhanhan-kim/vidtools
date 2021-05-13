@@ -47,7 +47,7 @@ track_blobs:
   # Detector params:
   min_threshold: 1
   max_threshold: 255
-  min_area: 40
+  min_area: 100
   max_area: null
   min_circularity: null
   max_circularity: null
@@ -56,7 +56,7 @@ track_blobs:
   min_inertia_ratio: null
   max_inertia_ratio: 0.5 
   # Tracker params:
-  max_age: 60 # 1
+  max_age: 300 # 1
   min_hits: 3 # 3
   iou_thresh: 0.3 # 0.2
   

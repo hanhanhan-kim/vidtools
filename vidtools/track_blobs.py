@@ -124,14 +124,14 @@ def detect_blobs(frame, blob_params):
         print(f"blob: {i}, x: {x}, y: {y}, d: {d}")
 
         # Make bounding boxes from centroid data:
-        scalar = 2 # adjust bbox size
+        scalar = 2.5 # adjust bbox size
         x1 = float(x - d/2 * scalar) # TODO FYI: CAST AS FLOAT FOR SORT, AND INT FOR OPENCV DRAWINGS
         y1 = float(y - d/2 * scalar)
         y2 = float(y + d/2 * scalar)
         x2 = float(x + d/2 * scalar)
 
         # print(f"is x1 < x2: {x1 < x2}")
-        # print(f"is y1 < y2: {y1 < y2}")
+        # p rint(f"is y1 < y2: {y1 < y2}")
 
         bottom_left = (x1, y1)
         top_right = (x2, y2)
@@ -204,9 +204,13 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
                 top_left = (int(tracker[0]), int(tracker[1])) 
                 bottom_right = (int(tracker[2]), int(tracker[3])) 
 
+                # Format: img mtx, box top left corner, bbox bottom right corner, colour, thickness
                 im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1)
-                
-            cv2.imshow("tracked objects ...", im_with_bboxes)
+                # # Format: img mtx, text, posn, font type, font size, colour, thickness
+                # im_with_txt = cv2.putText(im_with_bboxes, f"ID: {tracker[-1]}", top_left, cv2.FONT_HERSHEY_SIMPLEX, 1, (209, 80, 0, 255), 3) 
+            
+            # TODO: Add flag to show stream or not:
+            cv2.imshow("tracked objects ...", im_with_bboxes) # im_with_txt
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
@@ -226,8 +230,9 @@ def main(config):
     min_hits = config["track_blobs"]["min_hits"]
     iou_thresh = config["track_blobs"]["iou_thresh"]
 
+    non_blob_params = set(["root", "framerate", "max_age", "min_hits", "iou_thresh"])
     all_params = config["track_blobs"]
-    blob_params = {k:v for (k,v) in all_params.items() if k not in set(["root", "framerate", "max_age", "min_hits", "iou_thresh"])}
+    blob_params = {k:v for (k,v) in all_params.items() if k not in non_blob_params}
 
     # TODO: Add in a do_ask flag that draws a random sample of images from video and asks users if
     # they want to proceed. 
