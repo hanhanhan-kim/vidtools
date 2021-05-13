@@ -41,21 +41,25 @@ find_circle:
   do_ask: false
 
 track_blobs:
+
   root: ~/tmp/test/test_vids
   # root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/
   framerate: 30
+
   # Detector params:
-  min_threshold: 1
+  min_threshold: 20
   max_threshold: 255
-  min_area: 100
+  min_area: 200
+  max_area: 700
   min_circularity: null
   max_circularity: null
   min_convexity: null
   max_convexity: null
   min_inertia_ratio: null
   max_inertia_ratio: 0.5 
-  # Tracker params:
-  max_age: 10 # 1
-  min_hits: 0 # 1
+
+  # SORT tracker params:
+  max_age: 4 # 1
+  min_hits: 0 # 1 https://github.com/abewley/sort/issues/17#issuecomment-767695435 ... maybe don't make this an arg
   iou_thresh: 0.2 # 0.2
   
