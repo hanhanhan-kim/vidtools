@@ -376,5 +376,5 @@ def main(config):
             print(f"Detected blob(s) in {vid}" )
 
     elif Path(root).is_file():
-        bkgd = get_bkgd(vid)
+        bkgd = get_bkgd(root)
         track_blobs(root, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show)
