@@ -164,8 +164,6 @@ def get_bkgd(vid, step=1000):
     cap = cv2.VideoCapture(vid)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    print("\nComputing background image ...")
-
     samples = []
     for f in range(0, frame_count, step):
         cap.set(cv2.CAP_PROP_POS_FRAMES, f)
@@ -176,12 +174,10 @@ def get_bkgd(vid, step=1000):
     stack = np.stack(samples)
     bkgd = np.median(stack, axis=0).astype(np.uint8) # OpenCV img elements must be uint8
 
-    print("Computed background image ...")
-
     return bkgd
 
 
-def get_thresh_from_sample_blobs(vid, blob_params):
+def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
 
     """
     Computes the threshold with which to binarize the image, so that the blobs are
@@ -193,6 +189,7 @@ def get_thresh_from_sample_blobs(vid, blob_params):
     Parameters:
     -----------
     vid (str): Path to input .mp4 video. 
+    bkgd (array of uint8s): The background image. 
     blob_params (dict): A dictionary of parameters for `init_blob_detector()`. 
     
 
@@ -202,7 +199,6 @@ def get_thresh_from_sample_blobs(vid, blob_params):
     """
 
     cap = cv2.VideoCapture(vid)
-    bkgd = get_bkgd(vid)
     
     # Draw random number of images from video:
     num_chosen = 10
@@ -241,14 +237,13 @@ def get_thresh_from_sample_blobs(vid, blob_params):
             # Put threshold vals for all objs into a list, even if those objs are diff types:
             thresholds.append(thresh)
 
-        mean_thresh = np.mean(thresholds).astype(np.uint8) 
-
-        print(f"Threshold to use: {mean_thresh}")
+    mean_thresh = np.mean(thresholds).astype(np.uint8) 
+    print(f"Threshold to use: {mean_thresh} \n")
 
     return mean_thresh
 
 
-def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params, do_show=False):
+def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show=False):
 
     """
     Detects blobs across a video. 
@@ -260,6 +255,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params, do_s
     max_age (int): Maximum number of frames to keep a track alive without associated detections.
     min_hits (int): Minimum number of associated detections before track is initialized.
     iou_thresh (float): Minimum IOU (Intersection over Union) for match. 
+    bkgd (array of uint8s): The background image. 
     blob_params (dict): A dictionary of parameters for `init_blob_detector()`. 
 
     Returns:
@@ -271,8 +267,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params, do_s
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
     # For processing in loop:
-    bkgd = get_bkgd(vid)
-    thresh = get_thresh_from_sample_blobs(vid, blob_params)
+    thresh = get_thresh_from_sample_blobs(vid, bkgd, blob_params)
 
     # Initialize the SORT object:
     mot_tracker = Sort(max_age, min_hits, iou_thresh)
@@ -371,10 +366,15 @@ def main(config):
             if Path(output_vid).exists():
                 print(f"{output_vid} already exists. Skipping ...")
                 continue
+            
+            print("\nComputing background image ...")
+            bkgd = get_bkgd(vid)
+            print("Computed background image.")
 
             print(f"\nDetecting blob(s) in {vid} ...")
-
-            track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params, do_show)
+            track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show)
+            print(f"Detected blob(s) in {vid}" )
 
     elif Path(root).is_file():
-        track_blobs(root, framerate, max_age, min_hits, iou_thresh, blob_params, do_show)
+        bkgd = get_bkgd(vid)
+        track_blobs(root, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show)
