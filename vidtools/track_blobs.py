@@ -100,10 +100,9 @@ def detect_blobs(frame, blob_params):
 
     Returns:
     --------
-    1. A dictionary of dictionaries, where the outer keys are integers denoting the blob indexes,
-    and the inner keys are 'x', 'y', and 'd', for which the values are the x,y pixel 
-    coordinates of that blob's centroid, and the diameter of that blob. 
-    2. The image matrix of the tracked blobs and their bounding boxes; can pass to `cv2.imshow()` 
+    An array of shape (rows, 5), where each row is a detected blob, and the 5 columns are the 
+    bottom left corner's x coord, the bottom left corner's y coord, the top right corner's 
+    x coord, the top right corner's y coord, and a perfect dummy score of 1.0.
     """
 
     # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
@@ -246,7 +245,7 @@ def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
 def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show=False):
 
     """
-    Detects blobs across a video. 
+    Detects and tracks blobs across a video. 
 
     Parameters:
     -----------
@@ -281,11 +280,22 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
                             frameSize=(int(cap.get(3)), int(cap.get(4))), 
                             params=None)
 
+    count = 0
+    only_empties_so_far = True
     while cap.isOpened():
 
         ret, frame = cap.read()
 
         if ret:
+            
+            # Keep track of the frame we're on, so we can manipulate if we want:
+            count += 1
+            cap.set(cv2.CAP_PROP_POS_FRAMES, count)
+
+            # Always skip first 10 frames, because of artifacts:
+            if count <= 10:
+                # TODO: For recording data, return NaN 
+                continue
             
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -305,6 +315,14 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
             if len(dets) == 0:
                 dets = np.empty((0,5))
             trackers = mot_tracker.update(dets)
+
+            if len(trackers) > 0:
+                only_empties_so_far = False
+            
+            if only_empties_so_far:
+                # TODO: For recording data, return NaN
+                print("Only empty tracks so far ...")
+                continue
 
             # Draw stuff:
             # med_filtered = cv2.cvtColor(med_filtered, cv2.COLOR_GRAY2BGR) # draw on frame or processed?
