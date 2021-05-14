@@ -88,7 +88,7 @@ def init_blob_detector(min_threshold=1, max_threshold=255,
     return detector 
 
 
-def detect_blobs(frame, blob_params):
+def detect_opencv_blobs(frame, blob_params):
 
     """
     Detect blobs in a video frame. 
@@ -106,9 +106,9 @@ def detect_blobs(frame, blob_params):
     2. The image matrix of the tracked blobs and their bounding boxes; can pass to `cv2.imshow()` 
     """
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
+    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
     detector = init_blob_detector(**blob_params)
-    keypoints = detector.detect(gray)
+    keypoints = detector.detect(frame)
 
     print(f"{len(keypoints)} blob(s) detected ..." )
 
@@ -148,6 +148,28 @@ def detect_blobs(frame, blob_params):
     return dets 
 
 
+def get_bkgd(vid, step=1000):
+
+    """ 
+    step (int): 
+    """
+
+    cap = cv2.VideoCapture(vid)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    samples = []
+    for f in range(0, frame_count, step):
+        cap.set(cv2.CAP_PROP_POS_FRAMES, f)
+        _, img = cap.read()
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        samples.append(gray)
+
+    stack = np.stack(samples)
+    bkgd = np.median(stack, axis=0).astype(np.uint8) # OpenCV img elements must be uint8
+
+    return bkgd
+
+
 def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
 
     """
@@ -170,6 +192,8 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
     cap = cv2.VideoCapture(vid)
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
+    bkgd = get_bkgd(vid)
+
     # Initialize the SORT object:
     mot_tracker = Sort(max_age, min_hits, iou_thresh) # TODO: pass in params from args
 
@@ -188,14 +212,31 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
 
         if ret:
             
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # Background subrtact:
+            frgd = cv2.absdiff(frame, bkgd) 
+            # Invert the image:
+            b_on_w = cv2.bitwise_not(frgd) 
+            # # Rescale:
+            # b_on_w *= np.uint8(255/b_on_w.max()) 
+            # # Binarize: Gaussian filtering, then Otsu's thresholding
+            # blur = cv2.GaussianBlur(b_on_w,(5,5),0)
+            thresh, binarized= cv2.threshold(b_on_w,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
             # Add SORT tracker to detector:
-            dets = detect_blobs(frame, blob_params)
+            dets = detect_opencv_blobs(b_on_w, blob_params)
             if len(dets) == 0:
                 dets = np.empty((0,5))
             trackers = mot_tracker.update(dets)
 
-            # Draw bounding boxes:
-            im_with_bboxes = frame
+            # TODO: Binarize, where thresh = mean pixel intensity of the detected bounding box
+
+            # Draw stuff:
+            # Invert back; white on black is easier on the eyes:
+            w_on_b = cv2.bitwise_not(b_on_w) 
+            w_on_b = cv2.cvtColor(w_on_b, cv2.COLOR_GRAY2BGR)
+
+            im_with_bboxes = w_on_b
             for tracker in trackers: # trackers: [[x1, y1, x2, y2, ID], [x1, y1, x2, y2, ID], ...]
                 
                 top_left = (int(tracker[0]), int(tracker[1])) 
@@ -211,7 +252,6 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
-            # In OpenCV, images saved to video file must be 3 channels; save:
             out.write(im_with_txt)
 
     cap.release()
