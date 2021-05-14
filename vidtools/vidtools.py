@@ -32,48 +32,50 @@ def cli(ctx, config):
 @cli.command()
 @pass_config
 def print_config(config):
+    print("")
     pprint(config)
+    print("")
 
 @cli.command()
 @pass_config
 def vid_to_imgs(config):
     from vidtools import vid_to_imgs
-    click.echo("Converting ...")
+    click.echo("\nConverting ...")
     vid_to_imgs.main(config)
 
 @cli.command()
 @pass_config
 def h264_to_mp4(config):
     from vidtools import h264_to_mp4
-    click.echo("Converting ...")
+    click.echo("\nConverting ...")
     h264_to_mp4.main(config)
 
 @cli.command()
 @pass_config
 def undistort(config):
     from vidtools import undistort
-    click.echo("Undistorting ...")
+    click.echo("\nUndistorting ...")
     undistort.main(config)
 
 @cli.command()
 @pass_config
 def get_pxls_to_real(config):
     from vidtools import pxls_to_real
-    click.echo("Calculating conversion factor ...")
+    click.echo("\nCalculating conversion factor ...")
     pxls_to_real.main(config)
 
 @cli.command()
 @pass_config
 def find_circle(config):
     from vidtools import find_circle
-    click.echo("Finding circles ...")
+    click.echo("\nFinding circles ...")
     find_circle.main(config)
 
 @cli.command()
 @pass_config
 def track_blobs(config):
     from vidtools import track_blobs
-    click.echo("Looking for blobs ...")
+    click.echo("\nLooking for blobs ...")
     track_blobs.main(config)
 
 # TODO: Turn bias_mjpg_to_avi and fmf_to_vid into cli commands 

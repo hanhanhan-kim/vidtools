@@ -121,7 +121,7 @@ def detect_blobs(frame, blob_params):
         print(f"blob: {i}, x: {x}, y: {y}, d: {d}")
 
         # Make bounding boxes from centroid data:
-        scalar = 5 # adjust bbox size
+        scalar = 2 # adjust bbox size
         x1 = float(x - d/2 * scalar) 
         y1 = float(y - d/2 * scalar)
         y2 = float(y + d/2 * scalar)
@@ -141,7 +141,7 @@ def detect_blobs(frame, blob_params):
     return dets 
 
 
-def get_bkgd(vid, step=1000):
+def get_bkgd(vid, percent_for_bkgd=0.1):
 
     """ 
     Compute the background image from a video, by taking the median of each pixel
@@ -150,8 +150,8 @@ def get_bkgd(vid, step=1000):
     Parameters:
     -----------
     vid (str): Path to input .mp4 video. 
-    step (int): Sample every nth frame of the video when computing the median, 
-        where n = step. 
+    percent_for_bkgd (float): Sample n-percentile of frames from the video, when 
+        computing the background image. E.g. if 1, will be 1%; if 0.1, will be 0.1%. 
 
     Returns:
     --------
@@ -160,6 +160,8 @@ def get_bkgd(vid, step=1000):
 
     cap = cv2.VideoCapture(vid)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    step = int(percent_for_bkgd/100 * frame_count)
+    if step==0: step = 1
 
     samples = []
     for f in range(0, frame_count, step):
@@ -202,7 +204,7 @@ def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     samples = sorted(np.random.choice(frame_count, num_chosen))
     
-    print("Computing threshold to use from blob samples ...")
+    print("\nComputing threshold to use from blob samples ...")
 
     thresholds = []
     for f in samples:
@@ -235,7 +237,7 @@ def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
             thresholds.append(thresh)
 
     mean_thresh = np.mean(thresholds).astype(np.uint8) 
-    print(f"Threshold to use: {mean_thresh} \n")
+    print(f"Computed threshold to use: {mean_thresh}")
 
     return mean_thresh
 
@@ -346,6 +348,9 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
             
             out.write(im_with_txt)
 
+        else:
+            break
+
     cap.release()
     out.release()
     cv2.destroyAllWindows()
@@ -358,12 +363,15 @@ def main(config):
     root = expanduser(config["track_blobs"]["root"])
     framerate = config["track_blobs"]["framerate"]
     do_show = config["track_blobs"]["do_show"]
+    percent_for_bkgd = config["track_blobs"]["percent_for_bkgd"]
 
     max_age = config["track_blobs"]["max_age"]
     min_hits = config["track_blobs"]["min_hits"]
     iou_thresh = config["track_blobs"]["iou_thresh"]
 
-    non_blob_params = set(["root", "framerate", "do_show", "max_age", "min_hits", "iou_thresh"])
+    non_blob_params = set(["root", "framerate", "do_show", 
+                           "max_age", "min_hits", "iou_thresh", 
+                           "percent_for_bkgd"])
     all_params = config["track_blobs"]
     blob_params = {k:v for (k,v) in all_params.items() if k not in non_blob_params}
 
@@ -376,18 +384,18 @@ def main(config):
                 if "_blobbed.mp4" not in str(path.absolute())]
 
         if len(vids) == 0:
-            raise ValueError("No untracked videos ending with '.mp4' were found.")
+            raise ValueError("\nNo untracked videos ending with '.mp4' were found.")
 
         for vid in vids:
             
             output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
             if Path(output_vid).exists():
-                print(f"{output_vid} already exists. Skipping ...")
+                print(f"\n{output_vid} already exists. Skipping ...")
                 continue
             
             print("\nComputing background image ...")
-            bkgd = get_bkgd(vid)
+            bkgd = get_bkgd(vid, percent_for_bkgd)
             print("Computed background image.")
 
             print(f"\nDetecting blob(s) in {vid} ...")
@@ -395,5 +403,5 @@ def main(config):
             print(f"Detected blob(s) in {vid}" )
 
     elif Path(root).is_file():
-        bkgd = get_bkgd(root)
+        bkgd = get_bkgd(root, percent_for_bkgd)
         track_blobs(root, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show)
