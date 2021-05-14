@@ -88,7 +88,7 @@ def init_blob_detector(min_threshold=1, max_threshold=255,
     return detector 
 
 
-def detect_opencv_blobs(frame, blob_params):
+def detect_blobs(frame, blob_params):
 
     """
     Detect blobs in a video frame. 
@@ -124,7 +124,7 @@ def detect_opencv_blobs(frame, blob_params):
         print(f"blob: {i}, x: {x}, y: {y}, d: {d}")
 
         # Make bounding boxes from centroid data:
-        scalar = 2 # adjust bbox size
+        scalar = 5 # adjust bbox size
         x1 = float(x - d/2 * scalar) 
         y1 = float(y - d/2 * scalar)
         y2 = float(y + d/2 * scalar)
@@ -141,21 +141,30 @@ def detect_opencv_blobs(frame, blob_params):
 
     dets = np.array(dets)
 
-    # # Draw detected blobs:
-    # im_with_keypoints = cv2.drawKeypoints(gray, keypoints, np.array([]), (0,0,255), 
-    #                                       cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS) # checks that blobs and circle sizes correspond
-
     return dets 
 
 
 def get_bkgd(vid, step=1000):
 
     """ 
-    step (int): 
+    Compute the background image from a video, by taking the median of each pixel
+    from a sample of frames. 
+
+    Parameters:
+    -----------
+    vid (str): Path to input .mp4 video. 
+    step (int): Sample every nth frame of the video when computing the median, 
+        where n = step. 
+
+    Returns:
+    --------
+    The background image as an array of uint8s. 
     """
 
     cap = cv2.VideoCapture(vid)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    print("\nComputing background image ...")
 
     samples = []
     for f in range(0, frame_count, step):
@@ -167,10 +176,79 @@ def get_bkgd(vid, step=1000):
     stack = np.stack(samples)
     bkgd = np.median(stack, axis=0).astype(np.uint8) # OpenCV img elements must be uint8
 
+    print("Computed background image ...")
+
     return bkgd
 
 
-def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
+def get_thresh_from_sample_blobs(vid, blob_params):
+
+    """
+    Computes the threshold with which to binarize the image, so that the blobs are
+    black on a white background. Randomly samples 10 frames from the input video,
+    then uses OpenCV's SimpleBlobDetector (via `detect_blobs()`) to get approximate 
+    ROIs of the blobs from the **raw image**. Then runs Otsu thresholding to get 
+    the thresholds for each ROI. Returns the mean threshold from the ROIs. 
+
+    Parameters:
+    -----------
+    vid (str): Path to input .mp4 video. 
+    blob_params (dict): A dictionary of parameters for `init_blob_detector()`. 
+    
+
+    Returns:
+    --------
+    The mean threshold value (uint8) from the blob ROIs.
+    """
+
+    cap = cv2.VideoCapture(vid)
+    bkgd = get_bkgd(vid)
+    
+    # Draw random number of images from video:
+    num_chosen = 10
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    samples = sorted(np.random.choice(frame_count, num_chosen))
+    
+    print("Computing threshold to use from blob samples ...")
+
+    thresholds = []
+    for f in samples:
+        
+        cap.set(cv2.CAP_PROP_POS_FRAMES, f)
+        _, frame = cap.read()
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+         # Background subrtact:
+        frgd = cv2.absdiff(gray, bkgd) 
+        # Invert the image:
+        b_on_w = cv2.bitwise_not(frgd)
+
+        dets = detect_blobs(b_on_w, blob_params)
+        if len(dets) == 0:
+            continue
+
+        # For each detected bounding box, use Otsu to get a threshold:
+        for det in dets:
+
+            x1 = int(det[0])
+            y1 = int(det[1])
+            x2 = int(det[2])
+            y2 = int(det[3])
+            
+            bbox = b_on_w[y1:y2,x1:x2]
+            thresh,_ = cv2.threshold(bbox,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+            # Put threshold vals for all objs into a list, even if those objs are diff types:
+            thresholds.append(thresh)
+
+        mean_thresh = np.mean(thresholds).astype(np.uint8) 
+
+        print(f"Threshold to use: {mean_thresh}")
+
+    return mean_thresh
+
+
+def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params, do_show=False):
 
     """
     Detects blobs across a video. 
@@ -186,16 +264,18 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
 
     Returns:
     --------
-    Void; saves a video of the detected blobs. 
+    Void; saves a video of the detected blobs. # TODO: return data
     """
 
     cap = cv2.VideoCapture(vid)
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
+    # For processing in loop:
     bkgd = get_bkgd(vid)
+    thresh = get_thresh_from_sample_blobs(vid, blob_params)
 
     # Initialize the SORT object:
-    mot_tracker = Sort(max_age, min_hits, iou_thresh) # TODO: pass in params from args
+    mot_tracker = Sort(max_age, min_hits, iou_thresh)
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
@@ -212,31 +292,28 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
 
         if ret:
             
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
             # Background subrtact:
-            frgd = cv2.absdiff(frame, bkgd) 
+            frgd = cv2.absdiff(gray, bkgd) 
             # Invert the image:
             b_on_w = cv2.bitwise_not(frgd) 
-            # # Rescale:
-            # b_on_w *= np.uint8(255/b_on_w.max()) 
-            # # Binarize: Gaussian filtering, then Otsu's thresholding
-            # blur = cv2.GaussianBlur(b_on_w,(5,5),0)
-            thresh, binarized= cv2.threshold(b_on_w,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-            # Add SORT tracker to detector:
-            dets = detect_opencv_blobs(b_on_w, blob_params)
+            # Binarize:
+            _, binarized = cv2.threshold(b_on_w, thresh, 255,cv2.THRESH_BINARY)
+
+            # Get rid of salt and pepper noise with med filter:
+            med_filtered = cv2.medianBlur(binarized, 7) # kernel size must be positive odd int
+
+            # Detect on filtered binarized image and SORT-track:
+            dets = detect_blobs(med_filtered, blob_params)
             if len(dets) == 0:
                 dets = np.empty((0,5))
             trackers = mot_tracker.update(dets)
 
-            # TODO: Binarize, where thresh = mean pixel intensity of the detected bounding box
-
             # Draw stuff:
-            # Invert back; white on black is easier on the eyes:
-            w_on_b = cv2.bitwise_not(b_on_w) 
-            w_on_b = cv2.cvtColor(w_on_b, cv2.COLOR_GRAY2BGR)
-
-            im_with_bboxes = w_on_b
+            # med_filtered = cv2.cvtColor(med_filtered, cv2.COLOR_GRAY2BGR) # draw on frame or processed?
+            im_with_bboxes = frame
             for tracker in trackers: # trackers: [[x1, y1, x2, y2, ID], [x1, y1, x2, y2, ID], ...]
                 
                 top_left = (int(tracker[0]), int(tracker[1])) 
@@ -247,32 +324,37 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params):
                 # Format: img mtx, text, posn, font type, font size, colour, thickness
                 im_with_txt = cv2.putText(im_with_bboxes, f"ID: {int(tracker[-1])}", top_left, cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 1) 
             
-            # TODO: Add flag to show stream or not:
-            cv2.imshow("tracked objects ...", im_with_txt) # im_with_txt
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
+            if do_show:
+                
+                cv2.imshow("tracked objects ...", im_with_txt)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+            
             out.write(im_with_txt)
 
     cap.release()
     out.release()
     cv2.destroyAllWindows()
 
+    # TODO: Return data by streaming with csv. 
+
 
 def main(config):
 
     root = expanduser(config["track_blobs"]["root"])
     framerate = config["track_blobs"]["framerate"]
+    do_show = config["track_blobs"]["do_show"]
+
     max_age = config["track_blobs"]["max_age"]
     min_hits = config["track_blobs"]["min_hits"]
     iou_thresh = config["track_blobs"]["iou_thresh"]
 
-    non_blob_params = set(["root", "framerate", "max_age", "min_hits", "iou_thresh"])
+    non_blob_params = set(["root", "framerate", "do_show", "max_age", "min_hits", "iou_thresh"])
     all_params = config["track_blobs"]
     blob_params = {k:v for (k,v) in all_params.items() if k not in non_blob_params}
 
     # TODO: Add in a do_ask flag that draws a random sample of images from video and asks users if
-    # they want to proceed. 
+    # they want to proceed; show the binarized filtered image. 
 
     if Path(root).is_dir():
 
@@ -292,7 +374,7 @@ def main(config):
 
             print(f"\nDetecting blob(s) in {vid} ...")
 
-            track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params)
+            track_blobs(vid, framerate, max_age, min_hits, iou_thresh, blob_params, do_show)
 
     elif Path(root).is_file():
-        track_blobs(root, framerate, max_age, min_hits, iou_thresh, blob_params)
+        track_blobs(root, framerate, max_age, min_hits, iou_thresh, blob_params, do_show)

@@ -42,21 +42,22 @@ find_circle:
 
 track_blobs:
 
-  # root: ~/tmp/test/test_vids
-  root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/
+  root: ~/tmp/test/test_vids
+  # root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/
   framerate: 30
+  do_show: false
 
   # Detector params:
   min_threshold: 1
   max_threshold: 255
-  min_area: 50
-  max_area: 500
+  min_area: 10
+  max_area: 400
   min_circularity: null
   max_circularity: null
   min_convexity: null
   max_convexity: null
   min_inertia_ratio: null
-  max_inertia_ratio: 0.5 
+  max_inertia_ratio: null
 
   # SORT tracker params:
   max_age: 4 # 1
