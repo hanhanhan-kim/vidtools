@@ -48,7 +48,7 @@ track_blobs:
   do_show: false
 
   # Detector params:
-  min_threshold: 1
+  min_threshold: 200
   max_threshold: 255
   min_area: 10
   max_area: 400

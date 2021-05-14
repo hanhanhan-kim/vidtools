@@ -109,8 +109,6 @@ def detect_blobs(frame, blob_params):
     detector = init_blob_detector(**blob_params)
     keypoints = detector.detect(frame)
 
-    print(f"{len(keypoints)} blob(s) detected ..." )
-
     # Get keypoint (centroid) coordinates and size of blobs: 
     dets = []
     for i in range(len(keypoints)):
@@ -263,6 +261,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
     """
 
     cap = cv2.VideoCapture(vid)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
     # For processing in loop:
@@ -297,6 +296,8 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
                 # TODO: For recording data, return NaN 
                 continue
             
+            print(f"\nFrame {count} out of {frame_count}:")
+
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             # Background subrtact:
