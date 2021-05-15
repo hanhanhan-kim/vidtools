@@ -89,7 +89,6 @@ def init_blob_detector(min_threshold=1, max_threshold=255,
     return detector 
 
 
-@profile
 def detect_blobs(frame, blob_params):
 
     """
@@ -141,7 +140,6 @@ def detect_blobs(frame, blob_params):
     return dets 
 
 
-@profile
 def get_bkgd(vid, percent_for_bkgd=0.1):
 
     """ 
@@ -179,7 +177,6 @@ def get_bkgd(vid, percent_for_bkgd=0.1):
     return bkgd
 
 
-@profile
 def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
 
     """
@@ -246,7 +243,6 @@ def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
     return mean_thresh
 
 
-@profile
 def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show=False):
 
     """
@@ -357,7 +353,6 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
     # TODO: Return data by streaming with csv. 
 
 
-@profile
 def main(config):
 
     root = expanduser(config["track_blobs"]["root"])
