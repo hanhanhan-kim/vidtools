@@ -379,7 +379,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
                 break
         
         out.write(im_with_txt)
-        pbar.set_description(f"Detecting {len(dets)} blob(s) from frame {f+1}/{frame_count} from {basename(vid)}")
+        pbar.set_description(f"Detecting {len(dets)} blob(s) from frame {f+1}/{frame_count}")
 
     csv_file_handle.close()
     cap.release()
@@ -408,7 +408,8 @@ def main(config):
     if Path(root).is_dir():
 
         vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4") 
-                if "_blobbed.mp4" not in str(path.absolute())]
+                if "_blobbed.mp4" not in str(path.absolute()) 
+                and "_undistorted.mp4" in str(path.absolute())]
 
         if len(vids) == 0:
             raise ValueError("\nNo untracked videos ending with '.mp4' were found.")
@@ -425,9 +426,9 @@ def main(config):
             bkgd = get_bkgd(vid)
             print("Computed background image.")
 
-            print(f"\nDetecting blob(s) in {vid} ...")
+            print(f"Detecting blob(s) in {basename(vid)} ...")
             track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show)
-            print(f"Detected blob(s) in {vid}" )
+            print(f"Finished detecting blob(s) in {basename(vid)}" )
 
     elif Path(root).is_file():
         bkgd = get_bkgd(root)

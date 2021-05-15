@@ -44,12 +44,11 @@ track_blobs:
 
   # root: ~/tmp/test/test_vids
   root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/trimmed.mp4
+  # root: /mnt/2TB/data_in/cashylinidae/tests/higher_arena
   framerate: 30
   do_show: false
 
   # Detector params:
-  min_threshold: 200 # TODO: Get rid of these threshold values, bc I just need to set min to less than what I compute from my Otsu
-  max_threshold: 255
   min_area: 10
   max_area: 400
   min_circularity: null

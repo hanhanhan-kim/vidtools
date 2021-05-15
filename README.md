@@ -159,16 +159,22 @@ This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` v
 </details>
 
 
-### `track-a-blob`
+#### `track-blobs`
 
 <details><summary> Click for details. </summary>
 <br>
 
-This command uses OpenCV's simple blob detection algorithm to detect and track the centroids of blobs in a video. The typical use case is for identifying the coordinate positions of a single insect in a backlit arena. This detection algorithm does poorly under complex lighting conditions, or if tracking multiple interacting blobs. This command's `.yaml` parameters derive from OpenCV's [blob detection](https://docs.opencv.org/4.5.0/d8/da7/structcv_1_1SimpleBlobDetector_1_1Params.html#addd6c9f61049769bcc301005daf21637) and tracking parameters [TODO], and are:
+This command uses OpenCV's [simple blob detector](https://docs.opencv.org/3.4/d0/d7a/classcv_1_1SimpleBlobDetector.html) and Alex Bewley's [SORT tracker](https://github.com/abewley/sort) to detect and track blobs in an undistorted video. The typical use case is for identifying the coordinate positions of a single insect in a backlit arena. This detection algorithm does poorly under complex lighting conditions, or if tracking multiple *interacting* blobs. The quality of the tracker depends highly on the quality of the detector. The tracked blob IDs may prove unnecessary, depending on your use case. 
 
-- `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `.mp4` videos, and is recursive.
-- `min_threshold` (float): The threshold pixel value from which the threshold increments start. 
-- `max_threshold` (float): The threshold pixel value at which the threshold increments end.
+The algorithm used for this command merits a brief explanation. First, it computes a background image, by taking the median of each pixel across ~30 frames. Then, the code draws 10 random frames from the video, and then background subtracts, and then inverts, each of the 10 sample images. The code then uses OpenCV's simple blob detector with the passed in user parameters, and a minimum threshold of 1 and a maximum threshold of 255, to identify blobs. The resulting detected blobs are not ideal, but are still fairly accurate. For this reason, the code then grabs these blobs' bounding boxes, and computes the Otsu threshold *from each of these bounding boxes*, and then calculates the mean of the Otsu thresholds; the histogram of pixel intensities within each bounding box will be very bimodal. Now that the algorithm has derived the ideal threshold value from the 10 sample images, it moves onto all the frames of the video. For each frame, it background subtracts, inverts, and then thresholds the image. It then median blurs the image to get rid of all salt and pepper noise. The blurred image is the final processed image, and is passed into the SORT tracker. 
+
+This command's `.yaml` parameters mostly derive from OpenCV's [blob detector parameters](https://docs.opencv.org/4.5.0/d8/da7/structcv_1_1SimpleBlobDetector_1_1Params.html#addd6c9f61049769bcc301005daf21637) and Alex Bewley's [SORT tracker parameters](https://github.com/abewley/sort/blob/master/sort.py#L261-L267). This command's `.yaml` parameters are:
+
+- `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `_undistorted.mp4` videos, and is recursive.
+- `framerate` (integer): Framerate of the target video(s), in Hz.
+- `do_show` (boolean): If true, will display the labelled video output stream. The blob tracking will run slower if this value is true. 
+
+Detector parameters:
 - `min_area` (float or `None`): The minimum pixel area that a blob can have. Recall that `null` in a `.yaml` file denotes `None`. 
 - `max_area` (float or `None`): The maximum pixel area that a blob can have. Recall that `null` in a `.yaml` file denotes `None`. 
 - `min_circularity` (float or `None`): The minimum circularity that a blob can have. E.g. a regular hexagon is more circular than a regular pentagon. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
@@ -177,14 +183,17 @@ This command uses OpenCV's simple blob detection algorithm to detect and track t
 area of the blob divided by the blob's convex hull. Must be between 0 and 1. Recall that `null` in a `.yaml` file denotes `None`. 
 - `max_convexity` (float or `None`): The maximum convexity that a blob can have. Convexity is the
 area of the blob divided by the blob's convex hull. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
-- `min_inertia_ratio` (float or `None`): The minimum 'elongatedness' that a blob can have, where 
-the lowest value is a line, and the high value is a circle. Must be between 0 and 1. Recall that `null` in a `.yaml` file denotes `None`. 
-- `max_inertia_ratio` (float or `None`): The maximum 'elongatedness' that a blob can have, where 
-the lowest value is a line, and the high value is a circle. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
+- `min_inertia_ratio` (float or `None`): The minimum 'non-elongatedness' that a blob can have, where 
+the lowest value is a line, and the highest value is a circle. Must be between 0 and 1. Recall that `null` in a `.yaml` file denotes `None`. 
+- `max_inertia_ratio` (float or `None`): The maximum 'non-elongatedness' that a blob can have, where 
+the lowest value is a line, and the highest value is a circle. Must be between 0 and 1.  Recall that `null` in a `.yaml` file denotes `None`. 
 
+Tracker parameters:
+- `max_age` (int): Maximum number of frames to keep a track alive, without associated detections. 
+- `min_hits` (int): Minimum number of associated detections, before initializing a track. 
+- `iou_thresh` (float): Minimum IOU (intersection over union) value for defining a match between the predicted and actual bounding box. 
 
-This command returns a [TODO].
-</details>
+This command returns a video of the tracked blobs, where the bounding box and ID of the blobs are labelled. The output videos are suffixed with `_blobbed.mp4`. It also returns a csv file of each blob's data for each frame. The output csv files are suffixed with `_blobbed.csv`.  
 
 
 TODO: Reformat the remaining scripts to click-style commands and update docs here
