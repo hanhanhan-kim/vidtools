@@ -200,7 +200,7 @@ def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
     """
 
     cap = cv2.VideoCapture(vid)
-    
+
     # Draw random number of images from video:
     num_chosen = 10
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -220,6 +220,7 @@ def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
         # Invert the image:
         b_on_w = cv2.bitwise_not(frgd)
 
+        # Recall that detection here is with min_threshold=1, max_threshold=255
         dets = detect_blobs(b_on_w, blob_params)
         if len(dets) == 0:
             continue
@@ -279,8 +280,12 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
     pbar = trange(frame_count)
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
-    # For processing in loop:
+    # Get the threshold to apply across the whole image:
     thresh = get_thresh_from_sample_blobs(vid, bkgd, blob_params)
+    # Change the min threshold of blob params here so OpenCV's blob detector
+    # starts its thresholding on the whole image right below the Otsu threshold, which 
+    # we got from the line right above; keep max_threshold at 255:
+    blob_params["min_threshold"] = float(thresh - 20)
 
     # Initialize the SORT object:
     mot_tracker = Sort(max_age, min_hits, iou_thresh)
@@ -324,7 +329,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
 
         # Detect on filtered binarized image and SORT-track:
         orig_dets = detect_blobs(med_filtered, blob_params)
-        dets = orig_dets[:,:-3] # the last 3 cols aren't for SORT 
+        dets = orig_dets[...,:-3] # the last 3 cols aren't for SORT 
         if len(dets) == 0:
             dets = np.empty((0,5))
         trackers = mot_tracker.update(dets)
@@ -349,15 +354,15 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
             y2 = int(tracker[3])
 
             # Save to csv:
-            csv_writer.writerow({col_names[0]: count,       # frame
-                                 col_names[1]: int(tracker[-1]), # blob_id
-                                 col_names[2]: int(orig_det[-3]),     # centroid_x
-                                 col_names[3]: int(orig_det[-2]),     # centroid_y
-                                 col_names[4]: int(orig_det[-1]),     # dia
-                                 col_names[5]: x1,          # rect_x1
-                                 col_names[6]: y1,          # rect_y1
-                                 col_names[7]: x2,          # rect_x2
-                                 col_names[8]: y2})         # rect_y2
+            csv_writer.writerow({col_names[0]: count,             # frame
+                                 col_names[1]: int(tracker[-1]),  # blob_id
+                                 col_names[2]: int(orig_det[-3]), # centroid_x
+                                 col_names[3]: int(orig_det[-2]), # centroid_y
+                                 col_names[4]: int(orig_det[-1]), # dia
+                                 col_names[5]: x1,                # rect_x1
+                                 col_names[6]: y1,                # rect_y1
+                                 col_names[7]: x2,                # rect_x2
+                                 col_names[8]: y2})               # rect_y2
             
             # Draw on video:
             top_left = (x1, y1) 
@@ -374,7 +379,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
                 break
         
         out.write(im_with_txt)
-        pbar.set_description(f"Detecting {len(dets)} blobs from frame {f+1}/{frame_count} from {basename(vid)}")
+        pbar.set_description(f"Detecting {len(dets)} blob(s) from frame {f+1}/{frame_count} from {basename(vid)}")
 
     csv_file_handle.close()
     cap.release()
