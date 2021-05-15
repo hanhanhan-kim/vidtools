@@ -140,17 +140,15 @@ def detect_blobs(frame, blob_params):
     return dets 
 
 
-def get_bkgd(vid, percent_for_bkgd=0.1):
+def get_bkgd(vid):
 
     """ 
     Compute the background image from a video, by taking the median of each pixel
-    from a sample of frames. 
+    from a sample of 30 evenly spaced frames. 
 
     Parameters:
     -----------
     vid (str): Path to input .mp4 video. 
-    percent_for_bkgd (float): Sample n-percentile of frames from the video, when 
-        computing the background image. E.g. if 1, will be 1%; if 0.1, will be 0.1%. 
 
     Returns:
     --------
@@ -159,8 +157,10 @@ def get_bkgd(vid, percent_for_bkgd=0.1):
 
     cap = cv2.VideoCapture(vid)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    step = int(percent_for_bkgd/100 * frame_count)
-    if step==0: step = 1
+
+    step = int(frame_count / 30)
+    
+    if frame_count < 30: step = 0
 
     samples = []
     pbar = trange(0, frame_count, step)
@@ -358,15 +358,13 @@ def main(config):
     root = expanduser(config["track_blobs"]["root"])
     framerate = config["track_blobs"]["framerate"]
     do_show = config["track_blobs"]["do_show"]
-    percent_for_bkgd = config["track_blobs"]["percent_for_bkgd"]
 
     max_age = config["track_blobs"]["max_age"]
     min_hits = config["track_blobs"]["min_hits"]
     iou_thresh = config["track_blobs"]["iou_thresh"]
 
     non_blob_params = set(["root", "framerate", "do_show", 
-                           "max_age", "min_hits", "iou_thresh", 
-                           "percent_for_bkgd"])
+                           "max_age", "min_hits", "iou_thresh"])
     all_params = config["track_blobs"]
     blob_params = {k:v for (k,v) in all_params.items() if k not in non_blob_params}
 
@@ -390,7 +388,7 @@ def main(config):
                 continue
             
             print("\nComputing background image ...")
-            bkgd = get_bkgd(vid, percent_for_bkgd)
+            bkgd = get_bkgd(vid)
             print("Computed background image.")
 
             print(f"\nDetecting blob(s) in {vid} ...")
@@ -398,5 +396,5 @@ def main(config):
             print(f"Detected blob(s) in {vid}" )
 
     elif Path(root).is_file():
-        bkgd = get_bkgd(root, percent_for_bkgd)
+        bkgd = get_bkgd(root)
         track_blobs(root, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show)
