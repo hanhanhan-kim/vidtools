@@ -1,8 +1,9 @@
-from os.path import expanduser, splitext
+from os.path import expanduser, splitext, basename
 from pathlib import Path
 
 import cv2
 import numpy as np
+from tqdm import tqdm, trange
 
 from vidtools.sort import *
 
@@ -88,6 +89,7 @@ def init_blob_detector(min_threshold=1, max_threshold=255,
     return detector 
 
 
+@profile
 def detect_blobs(frame, blob_params):
 
     """
@@ -118,8 +120,6 @@ def detect_blobs(frame, blob_params):
         y = keypoints[i].pt[1]
         d = keypoints[i].size # dia
 
-        print(f"blob: {i}, x: {x}, y: {y}, d: {d}")
-
         # Make bounding boxes from centroid data:
         scalar = 2 # adjust bbox size
         x1 = float(x - d/2 * scalar) 
@@ -141,6 +141,7 @@ def detect_blobs(frame, blob_params):
     return dets 
 
 
+@profile
 def get_bkgd(vid, percent_for_bkgd=0.1):
 
     """ 
@@ -164,11 +165,13 @@ def get_bkgd(vid, percent_for_bkgd=0.1):
     if step==0: step = 1
 
     samples = []
-    for f in range(0, frame_count, step):
+    pbar = trange(0, frame_count, step)
+    for f in pbar:
         cap.set(cv2.CAP_PROP_POS_FRAMES, f)
         _, img = cap.read()
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         samples.append(gray)
+        pbar.set_description(f"Getting frames for computing background image")
 
     stack = np.stack(samples)
     bkgd = np.median(stack, axis=0).astype(np.uint8) # OpenCV img elements must be uint8
@@ -176,6 +179,7 @@ def get_bkgd(vid, percent_for_bkgd=0.1):
     return bkgd
 
 
+@profile
 def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
 
     """
@@ -242,6 +246,7 @@ def get_thresh_from_sample_blobs(vid, bkgd, blob_params):
     return mean_thresh
 
 
+@profile
 def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params, do_show=False):
 
     """
@@ -264,6 +269,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
 
     cap = cv2.VideoCapture(vid)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    pbar = trange(frame_count)
     output_vid = f"{splitext(vid)[0]}_blobbed.mp4"
 
     # For processing in loop:
@@ -283,73 +289,66 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
 
     count = 0
     only_empties_so_far = True
-    while cap.isOpened():
+    for f,_ in enumerate(pbar):
 
-        ret, frame = cap.read()
-
-        if ret:
+        _, frame = cap.read()
             
-            # Keep track of the frame we're on, so we can manipulate if we want:
-            count += 1
-            cap.set(cv2.CAP_PROP_POS_FRAMES, count)
+        # Keep track of the frame we're on, so we can manipulate if we want:
+        count += 1
 
-            # Always skip first 10 frames, because of artifacts:
-            if count <= 10:
-                # TODO: For recording data, return NaN 
-                continue
+        # Always skip first 10 frames, because of artifacts:
+        if count <= 10:
+            # TODO: For recording data, return NaN 
+            continue
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Background subrtact:
+        frgd = cv2.absdiff(gray, bkgd) 
+        # Invert the image:
+        b_on_w = cv2.bitwise_not(frgd) 
+
+        # Binarize:
+        _, binarized = cv2.threshold(b_on_w, thresh, 255,cv2.THRESH_BINARY)
+
+        # Get rid of salt and pepper noise with med filter:
+        med_filtered = cv2.medianBlur(binarized, 7) # kernel size must be positive odd int
+
+        # Detect on filtered binarized image and SORT-track:
+        dets = detect_blobs(med_filtered, blob_params)
+        if len(dets) == 0:
+            dets = np.empty((0,5))
+        trackers = mot_tracker.update(dets)
+
+        if len(trackers) > 0:
+            only_empties_so_far = False
+        
+        if only_empties_so_far:
+            # TODO: For recording data, return NaN
+            print("Only empty tracks so far ...")
+            continue
+
+        # Draw stuff:
+        # med_filtered = cv2.cvtColor(med_filtered, cv2.COLOR_GRAY2BGR) # draw on frame or processed?
+        im_with_bboxes = frame
+        for tracker in trackers: # trackers: [[x1, y1, x2, y2, ID], [x1, y1, x2, y2, ID], ...]
             
-            print(f"\nFrame {count} out of {frame_count}:")
+            top_left = (int(tracker[0]), int(tracker[1])) 
+            bottom_right = (int(tracker[2]), int(tracker[3])) 
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-            # Background subrtact:
-            frgd = cv2.absdiff(gray, bkgd) 
-            # Invert the image:
-            b_on_w = cv2.bitwise_not(frgd) 
-
-            # Binarize:
-            _, binarized = cv2.threshold(b_on_w, thresh, 255,cv2.THRESH_BINARY)
-
-            # Get rid of salt and pepper noise with med filter:
-            med_filtered = cv2.medianBlur(binarized, 7) # kernel size must be positive odd int
-
-            # Detect on filtered binarized image and SORT-track:
-            dets = detect_blobs(med_filtered, blob_params)
-            if len(dets) == 0:
-                dets = np.empty((0,5))
-            trackers = mot_tracker.update(dets)
-
-            if len(trackers) > 0:
-                only_empties_so_far = False
+            # Format: img mtx, box top left corner, bbox bottom right corner, colour, thickness
+            im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1)
+            # Format: img mtx, text, posn, font type, font size, colour, thickness
+            im_with_txt = cv2.putText(im_with_bboxes, f"ID: {int(tracker[-1])}", top_left, cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 1) 
+        
+        if do_show:
             
-            if only_empties_so_far:
-                # TODO: For recording data, return NaN
-                print("Only empty tracks so far ...")
-                continue
-
-            # Draw stuff:
-            # med_filtered = cv2.cvtColor(med_filtered, cv2.COLOR_GRAY2BGR) # draw on frame or processed?
-            im_with_bboxes = frame
-            for tracker in trackers: # trackers: [[x1, y1, x2, y2, ID], [x1, y1, x2, y2, ID], ...]
-                
-                top_left = (int(tracker[0]), int(tracker[1])) 
-                bottom_right = (int(tracker[2]), int(tracker[3])) 
-
-                # Format: img mtx, box top left corner, bbox bottom right corner, colour, thickness
-                im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1)
-                # Format: img mtx, text, posn, font type, font size, colour, thickness
-                im_with_txt = cv2.putText(im_with_bboxes, f"ID: {int(tracker[-1])}", top_left, cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 1) 
-            
-            if do_show:
-                
-                cv2.imshow("tracked objects ...", im_with_txt)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-            
-            out.write(im_with_txt)
-
-        else:
-            break
+            cv2.imshow("tracked objects ...", im_with_txt)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        
+        out.write(im_with_txt)
+        pbar.set_description(f"Detecting {len(dets)} blobs from frame {f+1}/{frame_count} from {basename(vid)}")
 
     cap.release()
     out.release()
@@ -358,6 +357,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
     # TODO: Return data by streaming with csv. 
 
 
+@profile
 def main(config):
 
     root = expanduser(config["track_blobs"]["root"])

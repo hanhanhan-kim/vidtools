@@ -43,7 +43,7 @@ find_circle:
 track_blobs:
 
   # root: ~/tmp/test/test_vids
-  root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/
+  root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/trimmed.mp4
   framerate: 30
   do_show: false
   percent_for_bkgd: 0.1
