@@ -1,5 +1,7 @@
 from os.path import expanduser, splitext, basename
 from pathlib import Path
+import atexit
+import csv
 
 import cv2
 import numpy as np
@@ -129,10 +131,10 @@ def detect_blobs(frame, blob_params):
         # print(f"is x1 < x2: {x1 < x2}")
         # p rint(f"is y1 < y2: {y1 < y2}")
 
-        # Format into a np array in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
+        # Format into a np array that has in it the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
         # where 1 is the bottom left corner coords and 2 is the top right corner coords of the bbox.
         # Format this way for the SORT tracker:
-        det = [x1, y1, x2, y2, 1.0] # provide a perfect dummy score of 1.0
+        det = [x1, y1, x2, y2, 1.0, x, y, d] # provide a perfect dummy score of 1.0; last 3 elements are NOT for SORT
         dets.append(det)
 
     dets = np.array(dets)
@@ -159,7 +161,6 @@ def get_bkgd(vid):
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     step = int(frame_count / 30)
-    
     if frame_count < 30: step = 0
 
     samples = []
@@ -263,6 +264,16 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
     Void; saves a video of the detected blobs. # TODO: return data
     """
 
+    csv_path = f"{splitext(vid)[0]}_blobbed.csv"
+    csv_file_handle = open(csv_path, "w", newline="")
+    atexit.register(csv_file_handle.close)
+    col_names = ["frame", "blob_id", 
+                 "centroid_x", "centroid_y", "dia",
+                 "rect_x1", "rect_y1", 
+                 "rect_x2", "rect_y2"] 
+    csv_writer = csv.DictWriter(csv_file_handle, fieldnames=col_names)
+    csv_writer.writeheader()
+
     cap = cv2.VideoCapture(vid)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     pbar = trange(frame_count)
@@ -294,7 +305,8 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
 
         # Always skip first 10 frames, because of artifacts:
         if count <= 10:
-            # TODO: For recording data, return NaN 
+            # For recording data, return NaN 
+            csv_writer.writerow({col_name:np.nan for col_name in col_names})
             continue
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -311,7 +323,8 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
         med_filtered = cv2.medianBlur(binarized, 7) # kernel size must be positive odd int
 
         # Detect on filtered binarized image and SORT-track:
-        dets = detect_blobs(med_filtered, blob_params)
+        orig_dets = detect_blobs(med_filtered, blob_params)
+        dets = orig_dets[:,:-3] # the last 3 cols aren't for SORT 
         if len(dets) == 0:
             dets = np.empty((0,5))
         trackers = mot_tracker.update(dets)
@@ -320,18 +333,35 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
             only_empties_so_far = False
         
         if only_empties_so_far:
-            # TODO: For recording data, return NaN
+            # For recording data, return NaN
+            csv_writer.writerow({col_name:np.nan for col_name in col_names})
             print("Only empty tracks so far ...")
             continue
 
-        # Draw stuff:
+        # Draw and save data:
         # med_filtered = cv2.cvtColor(med_filtered, cv2.COLOR_GRAY2BGR) # draw on frame or processed?
         im_with_bboxes = frame
-        for tracker in trackers: # trackers: [[x1, y1, x2, y2, ID], [x1, y1, x2, y2, ID], ...]
-            
-            top_left = (int(tracker[0]), int(tracker[1])) 
-            bottom_right = (int(tracker[2]), int(tracker[3])) 
+        for orig_det, tracker in zip(orig_dets, trackers): # trackers: [[x1, y1, x2, y2, ID], [x1, y1, x2, y2, ID], ...]
 
+            x1 = int(tracker[0])
+            y1 = int(tracker[1])
+            x2 = int(tracker[2])
+            y2 = int(tracker[3])
+
+            # Save to csv:
+            csv_writer.writerow({col_names[0]: count,       # frame
+                                 col_names[1]: int(tracker[-1]), # blob_id
+                                 col_names[2]: int(orig_det[-3]),     # centroid_x
+                                 col_names[3]: int(orig_det[-2]),     # centroid_y
+                                 col_names[4]: int(orig_det[-1]),     # dia
+                                 col_names[5]: x1,          # rect_x1
+                                 col_names[6]: y1,          # rect_y1
+                                 col_names[7]: x2,          # rect_x2
+                                 col_names[8]: y2})         # rect_y2
+            
+            # Draw on video:
+            top_left = (x1, y1) 
+            bottom_right = (x2, y2) 
             # Format: img mtx, box top left corner, bbox bottom right corner, colour, thickness
             im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1)
             # Format: img mtx, text, posn, font type, font size, colour, thickness
@@ -346,11 +376,10 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
         out.write(im_with_txt)
         pbar.set_description(f"Detecting {len(dets)} blobs from frame {f+1}/{frame_count} from {basename(vid)}")
 
+    csv_file_handle.close()
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-
-    # TODO: Return data by streaming with csv. 
 
 
 def main(config):
