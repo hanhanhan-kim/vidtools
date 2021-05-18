@@ -1,12 +1,13 @@
 from os.path import expanduser, join, splitext
 from os import mkdir
+from shutil import rmtree
 from pathlib import Path
 
 import numpy as np
 import cv2
 
 
-def vid_to_imgs(vid, frames=[], ext="png", do_ask=False):
+def vid_to_imgs(vid, frames=[], ext="png", do_ask=False, do_overwrite=False):
 
     """
     Convert a subset of video frames into images.
@@ -24,6 +25,8 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False):
         the extracted frames are suitable images in which to search for 
         checkerboard corners. Otherwise, will not ask the user. Default is 
         False.
+    do_overwrite (bool): If True, will overwrite the output folder of images,
+        if it already exists. 
 
     Returns:
     --------
@@ -32,6 +35,8 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False):
 
     vid = expanduser(vid)
     imgs_dir = splitext(vid)[0]
+    if Path(imgs_dir).exists() and do_overwrite:
+        rmtree(imgs_dir)
     mkdir(imgs_dir)
 
     cap = cv2.VideoCapture(vid)
@@ -67,6 +72,7 @@ def main(config):
     ext = config["vid_to_imgs"]["ext"]
     frames = config["vid_to_imgs"]["frames"]
     do_ask = config["vid_to_imgs"]["do_ask"]
+    do_overwrite = config["vid_to_imgs"]["do_overwrite"]
 
     if Path(root).is_dir():
 
@@ -77,7 +83,7 @@ def main(config):
 
         for vid in vids:
             print(f"Processing {vid} ...")
-            vid_to_imgs(vid=vid, frames=frames, ext=ext, do_ask=do_ask)
+            vid_to_imgs(vid=vid, frames=frames, ext=ext, do_ask=do_ask, do_overwrite=do_overwrite)
     
     elif Path(root).is_file():
-        vid_to_imgs(vid=root, frames=frames, ext=ext, do_ask=do_ask)
+        vid_to_imgs(vid=root, frames=frames, ext=ext, do_ask=do_ask, do_overwrite=do_overwrite)
