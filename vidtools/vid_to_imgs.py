@@ -51,17 +51,46 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False, do_overwrite=False):
     else:
         samples = frames
     
+    # Use the OpenCV GUI to navigate through frames
+    print("Press 'd' to go to next frame, 'a', to go to previous frame, and 's' to save the frame.")
+    good_samples = []
     samples = sorted(samples)
-    for f in samples:
+    for i,f in enumerate(samples):
         
+        print(f"Current frame: {f}")
         cap.set(cv2.CAP_PROP_POS_FRAMES, f)
         _, img = cap.read()
         
         if do_ask:
             cv2.imshow(f"frame_{f}", img)
-            cv2.waitKey(0) # wait for any key
-            cv2.destroyAllWindows()# DO NOT CLOSE VIA THE X ON THE GUI IN JUPYTER!
+            key = cv2.waitKey(0) & 0xFF # FYI: Gotta save waitKey in its own var
+            # Press "q" to quit:
+            if key == ord("q"):
+                break
+            # Press "d" to go to the next frame:
+            elif key == ord("d"):
+                f = f + 1
+                samples.insert(i+1, f)
+                cv2.destroyAllWindows()
+                continue
+            # Press "a" to go to the previous frame: 
+            elif key == ord("a"):
+                f = f - 1
+                samples.insert(i+1, f)
+                cv2.destroyAllWindows()
+                continue
+            # Press "s" to save this frame:
+            elif key == ord("s"):
+                good_samples.append(f)
+            # Press anything else to go to next frame in list:
 
+            cv2.destroyAllWindows()
+    
+    if len(good_samples) == 0:
+        good_samples = samples
+    
+    # Save to image: 
+    for f in good_samples:
         cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.{ext}"), img)
 
 
