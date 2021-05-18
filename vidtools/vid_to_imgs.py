@@ -52,9 +52,19 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False, do_overwrite=False):
         samples = frames
     
     # Use the OpenCV GUI to navigate through frames
-    print("Press 'd' to go to next frame, 'a', to go to previous frame, and 's' to save the frame.")
-    good_samples = []
+    print("Press 'd' to go to adjacent next frame, 'a', to go to adjacent previous frame, "
+           "and 's' to explicitly save the frame. Press any other key to go to the next frame "
+           "specified in the `config.yaml` file")
+
+    good_samples = {"idx":[], "img":[]}
     samples = sorted(samples)
+
+    if do_ask:
+        # Save state here, bc looping through samples in upcoming looop can mutate samples, 
+        # if 'd' or 'a' are pressed:
+        original_samples = samples.copy()
+        did_explicit_save = False
+
     for i,f in enumerate(samples):
         
         print(f"Current frame: {f}")
@@ -66,32 +76,51 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False, do_overwrite=False):
             key = cv2.waitKey(0) & 0xFF # FYI: Gotta save waitKey in its own var
             # Press "q" to quit:
             if key == ord("q"):
+                print("Quitting ...")
                 break
             # Press "d" to go to the next frame:
             elif key == ord("d"):
                 f = f + 1
                 samples.insert(i+1, f)
                 cv2.destroyAllWindows()
+                print("Remember to hit 's' to save.")
                 continue
             # Press "a" to go to the previous frame: 
             elif key == ord("a"):
                 f = f - 1
                 samples.insert(i+1, f)
                 cv2.destroyAllWindows()
+                print("Remember to hit 's' to save.")
                 continue
             # Press "s" to save this frame:
             elif key == ord("s"):
-                good_samples.append(f)
+                did_explicit_save = True
+                good_samples["idx"].append(f)
+                good_samples["img"].append(img)
+                print(f"Frame {f} has been saved.")
+                samples.insert(i+1, f) # stay on current frame in imshow
+                cv2.destroyAllWindows()
+
             # Press anything else to go to next frame in list:
 
             cv2.destroyAllWindows()
     
-    if len(good_samples) == 0:
-        good_samples = samples
+    # If no frames were explicitly saved via 's' key (e.g. if do_ask = False), 
+    # just save what was specified in config.yaml:
+    if not did_explicit_save:
+
+        print("No frames were explicitly saved. Saving frames specified in `config.yaml`")
+
+        for f in original_samples:
+
+            cap.set(cv2.CAP_PROP_POS_FRAMES, f)
+            _, img = cap.read()
+            cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.{ext}"), img)
     
-    # Save to image: 
-    for f in good_samples:
-        cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.{ext}"), img)
+    # Otherwise, save the images marked with 's' key to file: 
+    else:
+        for f, img in zip(good_samples["idx"], good_samples["img"]):
+            cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.{ext}"), img)
 
 
 # Formatted for click; config is a dict loaded from yaml:
