@@ -59,11 +59,10 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False, do_overwrite=False):
     good_samples = {"idx":[], "img":[]}
     samples = sorted(samples)
 
-    if do_ask:
-        # Save state here, bc looping through samples in upcoming looop can mutate samples, 
-        # if 'd' or 'a' are pressed:
-        original_samples = samples.copy()
-        did_explicit_save = False
+    # Save state here, bc looping through samples in upcoming looop can mutate samples, 
+    # if 'd' or 'a' are pressed:
+    original_samples = samples.copy()
+    did_explicit_save = False
 
     for i,f in enumerate(samples):
         
