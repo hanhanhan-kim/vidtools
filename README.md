@@ -96,8 +96,9 @@ This command converts a subset of video frames into images. It can either conver
 
 - `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `.mp4` videos, and is recursive.
 - `ext` (string): The desired file extension for the output images. 
-- `frames` (iterable of ints): Specifies the frames for converting into images. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `.mp4` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
-- `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable for converting to images.
+- `frames` (iterable of integers): Specifies the frames for converting into images. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `.mp4` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
+- `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable for converting to images. In addition, will give the user access to a keystroke-based 'GUI', where hitting 'q' exits the `vid-to-imgs` command, 'd' takes the user to the adjacent next frame, 'a' takes the user to the adjacent previous frame, and 's' explicitly saves the current frame. Pressing any other key will take the user to the next frame specified in the `frames` parameter of the `.yaml` file. If no frames are explicitly saved with the 's' key, then only the frames specified in the `.yaml` file will be saved. Otherwise, only the explicitly saved frames will be saved. 
+- `do_overwrite` (boolean): If true, will overwrite the output folder of images, if it already exists. 
 
 This command returns a subdirectory of images, in the same directory as the input `.mp4` video or videos. 
 </details>
@@ -132,7 +133,7 @@ This command converts pixel measurements to physical lengths, by calibrating wit
 - `framerate` (integer): Framerate of `undistorted_board` video in Hz. 
 - `m_corners` (integer): Number of internal corners along the rows of the checkerboard.
 - `n_corners` (integer): Number of internal corners along the columns of the checkerboard.
-- `frames` (iterable of ints): Specifies the frames in which to look for checkerboards. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `undistorted_board` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
+- `frames` (iterable of integers): Specifies the frames in which to look for checkerboards. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `undistorted_board` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
 - `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable images in which to search for checkerboard corners. 
 
 This command returns the ratio of pixels to real-world units in a `pxls_to_mm.pkl` file saved in the same directory as the `undistorted_board` video. 
@@ -152,7 +153,7 @@ This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/
 - `minDist` (integer): Minimum distance between the centres of the detected circles, in pixels. If the parameter is too small, multiple neighbour circles may be falsely detected, in addition to the true one. See OpenCV docs for details. 
 - `minRadius` (integer): Minimum circle radius, in pixels. See OpenCV docs for details.
 - `maxRadius` (integer): Maximum circle radius, in pixels. See OpenCV docs for details. 
-- `frames` (iterable of ints): Specifies the frames in which to look for circles. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the undistorted `.mp4` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
+- `frames` (iterable of integers): Specifies the frames in which to look for circles. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the undistorted `.mp4` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
 - `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable images in which to search for circles. 
 
 This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. 
