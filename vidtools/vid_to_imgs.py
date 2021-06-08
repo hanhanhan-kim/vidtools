@@ -126,6 +126,7 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False, do_overwrite=False):
 def main(config):
 
     root = expanduser(config["vid_to_imgs"]["root"])
+    vid_ending = '*' + config["vid_to_imgs"]["vid_ending"]
     ext = config["vid_to_imgs"]["ext"]
     frames = config["vid_to_imgs"]["frames"]
     do_ask = config["vid_to_imgs"]["do_ask"]
@@ -133,7 +134,7 @@ def main(config):
 
     if Path(root).is_dir():
 
-        vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4")]
+        vids = [str(path.absolute()) for path in Path(root).rglob(vid_ending)]
 
         if len(vids) == 0:
             raise ValueError("No videos ending with '.mp4' were found.")
