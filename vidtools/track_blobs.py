@@ -390,6 +390,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
 def main(config):
 
     root = expanduser(config["track_blobs"]["root"])
+    vid_ending = '*' + config["make_timelapse"]["vid_ending"]
     framerate = config["track_blobs"]["framerate"]
     do_show = config["track_blobs"]["do_show"]
 
@@ -409,7 +410,7 @@ def main(config):
 
         vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4") 
                 if "_blobbed.mp4" not in str(path.absolute()) 
-                and "_undistorted.mp4" in str(path.absolute())]
+                and vid_ending in str(path.absolute())]
 
         if len(vids) == 0:
             raise ValueError("\nNo untracked videos ending with '.mp4' were found.")

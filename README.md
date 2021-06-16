@@ -95,7 +95,7 @@ This command returns converted `.mp4` videos, in the same directory as the input
 This command converts a subset of video frames into images. It can either convert a single `.mp4` video, or batch convert a directory of `.mp4` videos. Its `.yaml` parameters are:
 
 - `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `.mp4` videos, and is recursive.
-- `vid_ending` (string): The file ending of the videos to be analyzed. Videos without the specified file ending will be skipped. For example, `.mp4` or `_undistorted.mp4`. This command supports only `.mp4` video files.
+- `vid_ending` (string): The file ending of the videos to be analyzed. For example, `.mp4` or `_undistorted.mp4`. Videos without the specified file ending will be skipped. This command supports only `.mp4` video files.
 - `ext` (string): The desired file extension for the output images. 
 - `frames` (iterable of integers): Specifies the frames for converting into images. Accepts an iterable of integers, such as a list of integers, where the integers specify the indexes of the frames in the `.mp4` video. If the length of the iterable is 0, the command will randomly draw 5 frames from the video. The default value of `frames` is `[]` (a list of length 0). 
 - `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable for converting to images. In addition, will give the user access to a keystroke-based 'GUI', where hitting 'q' exits the `vid-to-imgs` command, 'd' takes the user to the adjacent next frame, 'a' takes the user to the adjacent previous frame, and 's' explicitly saves the current frame. Pressing any other key will take the user to the next frame specified in the `frames` parameter of the `.yaml` file. If no frames are explicitly saved with the 's' key, then only the frames specified in the `.yaml` file will be saved. Otherwise, only the explicitly saved frames will be saved. 
@@ -173,6 +173,7 @@ The algorithm used for this command merits a brief explanation. First, it comput
 This command's `.yaml` parameters mostly derive from OpenCV's [blob detector parameters](https://docs.opencv.org/4.5.0/d8/da7/structcv_1_1SimpleBlobDetector_1_1Params.html#addd6c9f61049769bcc301005daf21637) and Alex Bewley's [SORT tracker parameters](https://github.com/abewley/sort/blob/master/sort.py#L261-L267). This command's `.yaml` parameters are:
 
 - `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `_undistorted.mp4` videos, and is recursive.
+- `vid_ending` (string): The file ending of the videos to be analyzed. For example, `.mp4` or `_undistorted.mp4`. Videos without the specified file ending will be skipped. This command supports only `.mp4` video files.
 - `framerate` (integer): Framerate of the target video(s), in Hz.
 - `do_show` (boolean): If true, will display the labelled video output stream. The blob tracking will run slower if this value is true. 
 
