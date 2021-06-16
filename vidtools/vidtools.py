@@ -66,6 +66,13 @@ def get_pxls_to_real(config):
 
 @cli.command()
 @pass_config
+def make_timelapse(config):
+    from vidtools import make_timelapse
+    click.echo("\nGenerating timelapse ...")
+    make_timelapse.main(config)
+
+@cli.command()
+@pass_config
 def find_circle(config):
     from vidtools import find_circle
     click.echo("\nFinding circles ...")
