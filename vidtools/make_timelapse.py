@@ -1,6 +1,4 @@
-"""
-Make a timelapse image from a grayscale video.
-"""
+"""Make a grayscale timelapse image from a video."""
 
 from os.path import expanduser, splitext, basename, dirname
 from pathlib import Path
@@ -12,8 +10,7 @@ from tqdm import tqdm, trange
 
 def get_timelapse(vid, density, is_dark_on_light=True):
 
-    """
-    """
+    """Make a grayscale timelapse image from a video."""
 
     if density > 1 or density < 0:
         raise ValueError(f"The density, {density}, must be between 0 and 1.")
