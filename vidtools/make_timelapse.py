@@ -1,6 +1,5 @@
 """
 Make a timelapse image from a grayscale video.
-Assumes that the video depicts dark objects moving on a bright background.
 """
 
 from os.path import expanduser, splitext, basename, dirname
