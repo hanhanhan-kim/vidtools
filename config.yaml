@@ -43,9 +43,10 @@ find_circle:
   do_ask: false
 
 make_timelapse:
-  root: ~/tmp/test_run
-  density: 0.01
+  root: /mnt/2TB/data_in/cashylinidae/tests/higher_arena/
   vid_ending: _undistorted.mp4
+  density: 0.01
+  is_dark_on_light: true
 
 track_blobs:
 

@@ -160,13 +160,27 @@ This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/
 This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. 
 </details>
 
+#### `make-timelapse`
+
+<details><summary> Click for details. </summary>
+<br>
+
+This command generates a timelapse image from a video, for one or more videos. It assumes a fixed camera position. Its `.yaml` parameters are:
+
+- `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `.mp4` videos, and is recursive.
+- `vid_ending` (string): The file ending of the videos to be analyzed. For example, `.mp4` or `_undistorted.mp4`. Videos without the specified file ending will be skipped. This command supports only `.mp4` video files.
+- `density` (float): Specifies the percentage of frames from which to generate the timelapse image. Must be a value between 0 and 1, where 1 selects all frames. 
+- `is_dark_on_light` (boolean): Specifies whether the moving objects of interest are dark against a light background, or light against a dark background. 
+
+This command returns an image suffixed with `_timelapse.png`, for each video.
+</details>
 
 #### `track-blobs`
 
 <details><summary> Click for details. </summary>
 <br>
 
-This command uses OpenCV's [simple blob detector](https://docs.opencv.org/3.4/d0/d7a/classcv_1_1SimpleBlobDetector.html) and Alex Bewley's [SORT tracker](https://github.com/abewley/sort) to detect and track blobs in an undistorted video. The typical use case is for identifying the coordinate positions of a single insect in a backlit arena. This detection algorithm does poorly under complex lighting conditions, or if tracking multiple *interacting* blobs. The quality of the tracker depends highly on the quality of the detector. The tracked blob IDs may prove unnecessary, depending on your use case. 
+This command uses OpenCV's [simple blob detector](https://docs.opencv.org/3.4/d0/d7a/classcv_1_1SimpleBlobDetector.html) and Alex Bewley's [SORT tracker](https://github.com/abewley/sort) to detect and track blobs in an undistorted video. The typical use case is for identifying the coordinate positions of a single animal in a backlit arena. This detection algorithm does poorly under complex lighting conditions, or if tracking multiple *interacting* blobs. The quality of the tracker depends highly on the quality of the detector. The tracked blob IDs may prove unnecessary, depending on your use case. 
 
 The algorithm used for this command merits a brief explanation. First, it computes a background image, by taking the median of each pixel across ~30 frames. Then, the code draws 10 random frames from the video, and then background subtracts, and then inverts, each of the 10 sample images. The code then uses OpenCV's simple blob detector with the passed in user parameters, and a minimum threshold of 1 and a maximum threshold of 255, to identify blobs. The resulting detected blobs are not ideal, but are still fairly accurate. For this reason, the code then grabs these blobs' bounding boxes, and computes the Otsu threshold *from each of these bounding boxes*, and then calculates the mean of the Otsu thresholds; the histogram of pixel intensities within each bounding box will be very bimodal. Now that the algorithm has derived the ideal threshold value from the 10 sample images, it moves onto all the frames of the video. For each frame, it background subtracts, inverts, and then thresholds the image. It then median blurs the image to get rid of all salt and pepper noise. The blurred image is the final processed image, and is passed into the SORT tracker. 
 

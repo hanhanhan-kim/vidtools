@@ -11,7 +11,7 @@ import cv2
 from tqdm import tqdm, trange
 
 
-def get_timelapse(vid, density):
+def get_timelapse(vid, density, is_dark_on_light=True):
 
     """
     """
@@ -21,10 +21,10 @@ def get_timelapse(vid, density):
 
     cap = cv2.VideoCapture(vid)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    total_frames = density * frame_count
+    used_frames = density * frame_count
 
-    step = int(frame_count / total_frames)
-    if frame_count < total_frames: step = 0
+    step = int(frame_count / used_frames)
+    if frame_count < used_frames: step = 0
 
     samples = []
     pbar = trange(0, frame_count, step)
@@ -37,7 +37,12 @@ def get_timelapse(vid, density):
 
     print(f"Computing timelapse image ...")
     stack = np.stack(samples)
-    timelapse = np.min(stack, axis=0).astype(np.uint8) # OpenCV img elements must be uint8
+
+    # OpenCV img elements must be uint8
+    if is_dark_on_light:
+        timelapse = np.min(stack, axis=0).astype(np.uint8)
+    else:
+        timelapse = np.max(stack, axis=0).astype(np.uint8)
 
     return timelapse
 
@@ -45,8 +50,9 @@ def get_timelapse(vid, density):
 def main(config):
     
     root = expanduser(config["make_timelapse"]["root"])
-    density = config["make_timelapse"]["density"]
     vid_ending = '*' + config["make_timelapse"]["vid_ending"]
+    density = config["make_timelapse"]["density"]
+    is_dark_on_light = config["make_timelapse"]["is_dark_on_light"]
 
     if Path(root).is_dir():
 
@@ -77,7 +83,7 @@ def main(config):
             print(f"\n{output_img} already exists. Skipping ...")
         
         else:
-            timelapse = get_timelapse(root, density)
+            timelapse = get_timelapse(root, density, is_dark_on_light)
             print(f"Computed timelapse image from {basename(root)}")
 
             cv2.imwrite(output_img, timelapse)
