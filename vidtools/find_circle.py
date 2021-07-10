@@ -169,7 +169,7 @@ def get_mean_circle_info(circle_info):
 def mask_and_crop(vid, mean_circle_info, framerate):
 
     """
-    TODO
+    Mask a video with a circle, and then crop the video around the circle. 
     
     Parameters:
     -----------
