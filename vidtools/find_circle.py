@@ -166,7 +166,7 @@ def get_mean_circle_info(circle_info):
             "r (pxls)":np.mean(rs)}
 
 
-def crop_and_mask(vid, mean_circle_info, framerate):
+def mask_and_crop(vid, mean_circle_info, framerate):
 
     """
     TODO
@@ -179,8 +179,8 @@ def crop_and_mask(vid, mean_circle_info, framerate):
 
     Returns:
     --------
-    
-    
+    The new circle centre coordinates and radius (radius will be same as before). 
+    In addition, saves the masked and cropped video. 
     """
 
     output_vid = f"{splitext(vid)[0]}_masked.mp4"
@@ -219,11 +219,17 @@ def crop_and_mask(vid, mean_circle_info, framerate):
             cv2.circle(mask, (x,y), r, 255, -1)
             masked = cv2.bitwise_and(gray, gray, mask=mask)
 
-            # Crop: 
+            # Crop (centred about circle centre): 
             roi = masked[y-r-spacing : y+r+spacing, x-r-spacing : x+r+spacing]
 
             # In OpenCV, images saved to video file must be three channels:
             re_bgr = cv2.cvtColor(roi, cv2.COLOR_GRAY2BGR)
+
+            # # Inspect the location of the new circle centre:
+            # x_after_crop = int(roi.shape[1]/2)
+            # y_after_crop = int(roi.shape[0]/2)
+            # test = cv2.circle(roi, (x_after_crop, y_after_crop), 5, (0,0,255), -1)
+            # re_bgr = cv2.cvtColor(test, cv2.COLOR_GRAY2BGR)
 
             out.write(re_bgr)
             cv2.imshow("masked", re_bgr)
@@ -233,10 +239,13 @@ def crop_and_mask(vid, mean_circle_info, framerate):
 
     cap.release()
     out.release()
-            
 
-    # TODO: I have to save new circle coordinates AFTER cropping. 
-    # Rather than redetect, I should just compute from the crop what my new x,y will be; r will be the same
+    x_after_crop = int(roi.shape[1]/2)
+    y_after_crop = int(roi.shape[0]/2)
+
+    return {"x (pxls)": x_after_crop, 
+            "y (pxls)": y_after_crop,
+            "r (pxls)": r}
 
 
 # Formatted for click; config is a dict loaded from yaml:
@@ -244,6 +253,7 @@ def main(config):
 
     root = expanduser(config["find_circle"]["root"])
     vid_ending = '*' + config["find_circle"]["vid_ending"]
+    framerate = int(config["find_circle"]["framerate"])
     dp = int(config["find_circle"]["dp"])
     param1 = int(config["find_circle"]["param1"])
     param2 = int(config["find_circle"]["param2"])
@@ -252,7 +262,7 @@ def main(config):
     maxRadius = int(config["find_circle"]["maxRadius"])
     frames = config["find_circle"]["frames"]
     do_ask = config["find_circle"]["do_ask"]
-
+    
     vids = [str(path.absolute()) for path in Path(root).rglob(vid_ending) 
             if ".mp4" in str(path.absolute())]
 
@@ -280,10 +290,10 @@ def main(config):
 
             results = get_mean_circle_info(all_circles)
 
-            # TODO: 
-            crop_and_mask(vid, results, 30)
+            # Mask and crop video, then save:
+            results_after_cropping = mask_and_crop(vid, results, framerate)
 
             print("mean circle:")
             pprint(results)
-            pickle.dump(results, open(output_pkl, "wb"))
+            pickle.dump(results_after_cropping, open(output_pkl, "wb"))
             print(f"The mean circle has been saved to {output_pkl} .")

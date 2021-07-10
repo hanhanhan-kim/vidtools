@@ -17,7 +17,7 @@ undistort:
   framerate: 30
   m_corners: 6
   n_corners: 7
-  target: /mnt/2TB/data_in/cashylinidae/tests/lower_arena/
+  target: /mnt/2TB/data_in/cashylinidae/data/disarmed
   do_debug: false
   do_crop: true # must be true, if the output is a checkerboard vid to be used in pxls_to_real
 
@@ -34,6 +34,7 @@ find_circle:
   # root: /mnt/2TB/data_in/cashylinidae/data
   root: ~/tmp/test/
   vid_ending: _undistorted.mp4
+  framerate: 30
   dp: 2 # 1
   param1: 80 # 30 # 28 # 80
   param2: 200 # 70 # 45 # 200
