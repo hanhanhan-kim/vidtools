@@ -96,7 +96,7 @@ def find_circle(vid, dp=2, param1=80, param2=200, minDist=140,
     if a:
         
         all_circles =[]
-        for i,img in enumerate(imgs):
+        for i, img in enumerate(imgs):
             
             circles = cv2.HoughCircles(img, 
                                        method=cv2.HOUGH_GRADIENT, 
@@ -115,13 +115,17 @@ def find_circle(vid, dp=2, param1=80, param2=200, minDist=140,
 
             print(f"frame {samples[i]}: [x, y, radius] {np.squeeze(circles)}")
             
+            # Recolor:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+            # Draw circles:
             for c in circles[0,:]:
                 # Draw the outer circle
                 cv2.circle(img,(c[0],c[1]),c[2],(0,255,0),2)
                 # Draw the center of the circle
-                cv2.circle(img,(c[0],c[1]),2,(0,0,255),3)
-
-            cv2.imshow('detected circles',img)
+                cv2.circle(img,(c[0],c[1]),2,(0,0,255), 3)
+            
+            cv2.imshow('detected circles', img)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
             
@@ -148,7 +152,7 @@ def find_circle(vid, dp=2, param1=80, param2=200, minDist=140,
 
 def get_mean_circle_info(circle_info):
     
-    """Get mean values from the output of find_circle()"""
+    """Get mean values from the output of `find_circle()`"""
     
     for circle in circle_info:
         xs, ys, rs = [], [], []
@@ -162,10 +166,84 @@ def get_mean_circle_info(circle_info):
             "r (pxls)":np.mean(rs)}
 
 
+def crop_and_mask(vid, mean_circle_info, framerate):
+
+    """
+    TODO
+    
+    Parameters:
+    -----------
+    vid (str): Path to the input video
+    mean_circle_info (dict): The output of `get_mean_circle_info()`.
+    framerate: The video framerate.
+
+    Returns:
+    --------
+    
+    
+    """
+
+    output_vid = f"{splitext(vid)[0]}_masked.mp4"
+
+    cap = cv2.VideoCapture(vid)
+
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    x = int(mean_circle_info["x (pxls)"])
+    y = int(mean_circle_info["y (pxls)"])
+    r = int(mean_circle_info["r (pxls)"])
+
+    spacing = 5
+    target_edge = 2 * (r + spacing)
+
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
+    out = cv2.VideoWriter(filename=output_vid, 
+                            apiPreference=0, 
+                            fourcc=fourcc, 
+                            fps=int(framerate), 
+                            frameSize=(int(target_edge), int(target_edge)), 
+                            params=None)
+
+    while cap.isOpened():
+
+        ret, frame = cap.read()
+        
+        if ret:
+
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # Mask:
+            mask = np.zeros((height, width), dtype="uint8")
+            cv2.circle(mask, (x,y), r, 255, -1)
+            masked = cv2.bitwise_and(gray, gray, mask=mask)
+
+            # Crop: 
+            roi = masked[y-r-spacing : y+r+spacing, x-r-spacing : x+r+spacing]
+
+            # In OpenCV, images saved to video file must be three channels:
+            re_bgr = cv2.cvtColor(roi, cv2.COLOR_GRAY2BGR)
+
+            out.write(re_bgr)
+            cv2.imshow("masked", re_bgr)
+
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+
+    cap.release()
+    out.release()
+            
+
+    # TODO: I have to save new circle coordinates AFTER cropping. 
+    # Rather than redetect, I should just compute from the crop what my new x,y will be; r will be the same
+
+
 # Formatted for click; config is a dict loaded from yaml:
 def main(config):
 
     root = expanduser(config["find_circle"]["root"])
+    vid_ending = '*' + config["find_circle"]["vid_ending"]
     dp = int(config["find_circle"]["dp"])
     param1 = int(config["find_circle"]["param1"])
     param2 = int(config["find_circle"]["param2"])
@@ -175,10 +253,11 @@ def main(config):
     frames = config["find_circle"]["frames"]
     do_ask = config["find_circle"]["do_ask"]
 
-    vids = [str(path.absolute()) for path in Path(root).rglob("*_undistorted.mp4")]
+    vids = [str(path.absolute()) for path in Path(root).rglob(vid_ending) 
+            if ".mp4" in str(path.absolute())]
 
     if len(vids) == 0:
-        raise ValueError("No videos ending with '_undistorted.mp4' were found.")
+        raise ValueError(f"No .mp4 videos ending with '{vid_ending}' were found.")
 
     for vid in vids:
         
@@ -200,6 +279,10 @@ def main(config):
                                       do_ask=do_ask)
 
             results = get_mean_circle_info(all_circles)
+
+            # TODO: 
+            crop_and_mask(vid, results, 30)
+
             print("mean circle:")
             pprint(results)
             pickle.dump(results, open(output_pkl, "wb"))

@@ -8,7 +8,7 @@ vid_to_imgs:
   do_overwrite: true # false
 
 h264_to_mp4:
-  root: ~/tmp/test
+  root: /mnt/2TB/data_in/cashylinidae/data/disarmed # ~/tmp/test
   framerate: 30
   do_mono: true # higher quality with opencv backend
 
@@ -33,6 +33,7 @@ pxls_to_real:
 find_circle:
   # root: /mnt/2TB/data_in/cashylinidae/data
   root: ~/tmp/test/
+  vid_ending: _undistorted.mp4
   dp: 2 # 1
   param1: 80 # 30 # 28 # 80
   param2: 200 # 70 # 45 # 200
