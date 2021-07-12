@@ -125,9 +125,10 @@ def find_circle(vid, dp=2, param1=80, param2=200, minDist=140,
                 # Draw the center of the circle
                 cv2.circle(img,(c[0],c[1]),2,(0,0,255), 3)
             
-            cv2.imshow('detected circles', img)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            if do_ask:
+                cv2.imshow('detected circles', img)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
             
             circles = np.squeeze(circles)
 
@@ -236,6 +237,9 @@ def mask_and_crop(vid, mean_circle_info, framerate):
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
+
+        else: 
+            break
 
     cap.release()
     out.release()
