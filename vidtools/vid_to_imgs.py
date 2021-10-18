@@ -1,4 +1,4 @@
-from os.path import expanduser, join, splitext
+from os.path import expanduser, join, splitext, basename
 from os import mkdir
 from shutil import rmtree
 from pathlib import Path
@@ -114,12 +114,12 @@ def vid_to_imgs(vid, frames=[], ext="png", do_ask=False, do_overwrite=False):
 
             cap.set(cv2.CAP_PROP_POS_FRAMES, f)
             _, img = cap.read()
-            cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.{ext}"), img)
+            cv2.imwrite(join(imgs_dir, f"{basename(imgs_dir)}_frame_{f:08d}.{ext}"), img)
     
     # Otherwise, save the images marked with 's' key to file: 
     else:
         for f, img in zip(good_samples["idx"], good_samples["img"]):
-            cv2.imwrite(join(imgs_dir, f"frame_{f:08d}.{ext}"), img)
+            cv2.imwrite(join(imgs_dir, f"{basename(imgs_dir)}_frame_{f:08d}.{ext}"), img)
 
 
 # Formatted for click; config is a dict loaded from yaml:
