@@ -262,7 +262,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
 
     Returns:
     --------
-    Void; saves a video of the detected blobs. # TODO: return data
+    Void; saves a video and a csv of the detected blobs.
     """
 
     csv_path = f"{splitext(vid)[0]}_blobbed.csv"
@@ -308,11 +308,11 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
         # Keep track of the frame we're on, so we can manipulate if we want:
         count += 1
 
-        # Always skip first 10 frames, because of artifacts:
-        if count <= 10:
-            # For recording data, return NaN 
-            csv_writer.writerow({col_name:np.nan for col_name in col_names})
-            continue
+        # # Always skip first 10 frames, because of artifacts:
+        # if count <= 10:
+        #     # For recording data, return NaN 
+        #     csv_writer.writerow({col_name:np.nan for col_name in col_names})
+        #     continue
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -322,7 +322,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
         b_on_w = cv2.bitwise_not(frgd) 
 
         # Binarize:
-        _, binarized = cv2.threshold(b_on_w, thresh, 255,cv2.THRESH_BINARY)
+        _, binarized = cv2.threshold(b_on_w, thresh, 255, cv2.THRESH_BINARY)
 
         # Get rid of salt and pepper noise with med filter:
         med_filtered = cv2.medianBlur(binarized, 7) # kernel size must be positive odd int
@@ -368,17 +368,18 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
             top_left = (x1, y1) 
             bottom_right = (x2, y2) 
             # Format: img mtx, box top left corner, bbox bottom right corner, colour, thickness
-            im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (0,255,0), 1)
-            # Format: img mtx, text, posn, font type, font size, colour, thickness
-            im_with_txt = cv2.putText(im_with_bboxes, f"ID: {int(tracker[-1])}", top_left, cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 1) 
+            im_with_bboxes = cv2.rectangle(im_with_bboxes, top_left, bottom_right, (165, 194, 102), 2)
+            # # Format: img mtx, text, posn, font type, font size, colour, thickness
+            # im_with_txt = cv2.putText(im_with_bboxes, f"ID: {int(tracker[-1])}", top_left, cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 1) 
         
         if do_show:
             
-            cv2.imshow("tracked objects ...", im_with_txt)
+            cv2.imshow("tracked objects ...", im_with_bboxes) 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         
-        out.write(im_with_txt)
+        # out.write(im_with_txt)
+        out.write(im_with_bboxes) # don't save text in the video
         pbar.set_description(f"Detecting {len(dets)} blob(s) from frame {f+1}/{frame_count}")
 
     csv_file_handle.close()
@@ -390,7 +391,7 @@ def track_blobs(vid, framerate, max_age, min_hits, iou_thresh, bkgd, blob_params
 def main(config):
 
     root = expanduser(config["track_blobs"]["root"])
-    vid_ending = '*' + config["make_timelapse"]["vid_ending"]
+    vid_ending = '*' + config["track_blobs"]["vid_ending"]
     framerate = config["track_blobs"]["framerate"]
     do_show = config["track_blobs"]["do_show"]
 
@@ -398,7 +399,7 @@ def main(config):
     min_hits = config["track_blobs"]["min_hits"]
     iou_thresh = config["track_blobs"]["iou_thresh"]
 
-    non_blob_params = set(["root", "framerate", "do_show", 
+    non_blob_params = set(["root", "vid_ending", "framerate", "do_show", 
                            "max_age", "min_hits", "iou_thresh"])
     all_params = config["track_blobs"]
     blob_params = {k:v for (k,v) in all_params.items() if k not in non_blob_params}
@@ -408,9 +409,8 @@ def main(config):
 
     if Path(root).is_dir():
 
-        vids = [str(path.absolute()) for path in Path(root).rglob("*.mp4") 
-                if "_blobbed.mp4" not in str(path.absolute()) 
-                and vid_ending in str(path.absolute())]
+        vids = [str(path.absolute()) for path in Path(root).rglob(vid_ending) 
+                if "_blobbed" not in str(path.absolute())]
 
         if len(vids) == 0:
             raise ValueError("\nNo untracked videos ending with '.mp4' were found.")
