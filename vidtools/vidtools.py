@@ -114,7 +114,7 @@ def find_circle(config):
 
 @cli.command()
 @pass_config
-@docstring_parameter([docstrings["track-blobs"]])
+@docstring_parameter(docstrings["track-blobs"])
 def track_blobs(config):
     """
     {0}

@@ -183,6 +183,22 @@ This command returns an image suffixed with `_timelapse.png`, for each video.
 </details>
 
 
+#### `make-timelapse`
+
+<details><summary> Click for details. </summary>
+<br>
+
+This command generates a timelapse image from a video, for one or more videos. It assumes a fixed camera position. Its `.yaml` parameters are:
+
+- `root` (string): Path to the root video or directory. If the latter, the directory that houses the target `.mp4` videos, and is recursive.
+- `vid_ending` (string): The file ending of the videos to be analyzed. For example, `.mp4` or `_undistorted.mp4`. Videos without the specified file ending will be skipped. This command supports only `.mp4` video files.
+- `density` (float): Specifies the percentage of frames from which to generate the timelapse image. Must be a value between 0 and 1, where 1 selects all frames. 
+- `is_dark_on_light` (boolean): Specifies whether the moving objects of interest are dark against a light background, or light against a dark background. 
+
+This command returns an image suffixed with `_timelapse.png`, for each video.
+</details>
+
+
 #### `track-blobs`
 
 <details><summary> Click for details. </summary>
