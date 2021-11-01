@@ -1,38 +1,38 @@
 vid_to_imgs:
   # root: ~/tmp/test
-  root: /mnt/2TB/data_in/cashylinidae/data/2021-02-03
-  vid_ending: _undistorted.mp4
+  root: /mnt/2TB/data_in/cashylinidae/data/point_in_sea/
+  vid_ending: _undistorted_masked.mp4
   ext: png
   frames: []
   do_ask: false
-  do_overwrite: true # false
+  do_overwrite: false # false
 
 h264_to_mp4:
-  root: /mnt/2TB/data_in/cashylinidae/data/disarmed # ~/tmp/test
+  root: /mnt/2TB/data_in/cashylinidae/data/point_in_sea # ~/tmp/test
   framerate: 30
   do_mono: true # higher quality with opencv backend
 
 undistort:
-  board: /mnt/2TB/data_in/cashylinidae/tests/lower_arena/calib_files/calibration.mp4
+  board: /mnt/2TB/data_in/cashylinidae/calib_files/cam/cashy_3/calibration.mp4
   framerate: 30
   m_corners: 6
   n_corners: 7
-  target: /mnt/2TB/data_in/cashylinidae/data/disarmed
+  target: /mnt/2TB/data_in/cashylinidae/data/point_in_sea
   do_debug: false
   do_crop: true # must be true, if the output is a checkerboard vid to be used in pxls_to_real
 
 pxls_to_real:
   real_board_square_len: 20 # real world units, e.g. mm
-  undistorted_board: /mnt/2TB/data_in/cashylinidae/tests/lower_arena/calib_files/calibration_undistorted.mp4
+  undistorted_board: /mnt/2TB/data_in/cashylinidae/calib_files/cam/cashy_3/calibration_undistorted.mp4
   framerate: 30 
   m_corners: 6
   n_corners: 7
   frames: []
   do_ask: false
 
-find_circle:
-  # root: /mnt/2TB/data_in/cashylinidae/data
-  root: ~/tmp/test/
+find_circle: # TODO: Change the name of this command
+  root: /mnt/2TB/data_in/cashylinidae/data/point_in_sea
+  # root: ~/tmp/test/
   vid_ending: _undistorted.mp4
   framerate: 30
   dp: 2 # 1
@@ -53,9 +53,10 @@ make_timelapse:
 track_blobs:
 
   # root: ~/tmp/test/test_vids
-  root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/interaction.mp4
-  # root: /mnt/2TB/data_in/cashylinidae/tests/higher_arena
-  vid_ending: _undistorted.mp4
+  # root: ~/Dropbox/_mysci/datasets/toy_behav/cashy/test/interaction.mp4
+  # root: ~/tmp/test_blobs
+  root: /mnt/2TB/data_in/cashylinidae/data/point_in_sea
+  vid_ending: _undistorted_masked.mp4
   framerate: 30
   do_show: false
 

@@ -73,6 +73,7 @@ The outputs of `vidtools`' commands never overwrite existing files, without firs
 This command prints the contents of the `.yaml` configuration file. It does not have any `.yaml` parameters.
 </details>
 
+
 #### `h264-to-mp4`
 
 <details><summary> Click for details. </summary>
@@ -86,6 +87,7 @@ This command batch converts `.h264` videos to `.mp4` videos. It can output the `
 
 This command returns converted `.mp4` videos, in the same directory as the input `.h264` videos. 
 </details>
+
 
 #### `vid-to-imgs`
 
@@ -103,6 +105,7 @@ This command converts a subset of video frames into images. It can either conver
 
 This command returns a subdirectory of images, in the same directory as the input `.mp4` video or videos. 
 </details>
+
 
 #### `undistort`
 
@@ -122,6 +125,7 @@ This command undistorts videos by calibrating a checkerboard `.mp4` video or a f
 This command returns a fanciful video of the (still distorted) checkerboard video with labeled detected checkerboard corners, the undistorted target `.mp4` videos, and a `.pkl` file of the camera calibration matrix that was used to undistort the target videos. Additional outputs will be returned if `do_debug` is true. 
 </details>
 
+
 #### `pxls-to-real`
 
 <details><summary> Click for details. </summary>
@@ -139,6 +143,7 @@ This command converts pixel measurements to physical lengths, by calibrating wit
 
 This command returns the ratio of pixels to real-world units in a `pxls_to_mm.pkl` file saved in the same directory as the `undistorted_board` video. 
 </details>
+
 
 #### `find-circle`
 
@@ -161,6 +166,7 @@ This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/
 This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. 
 </details>
 
+
 #### `make-timelapse`
 
 <details><summary> Click for details. </summary>
@@ -175,6 +181,7 @@ This command generates a timelapse image from a video, for one or more videos. I
 
 This command returns an image suffixed with `_timelapse.png`, for each video.
 </details>
+
 
 #### `track-blobs`
 
@@ -211,7 +218,5 @@ Tracker parameters:
 - `min_hits` (int): Minimum number of associated detections, before initializing a track. 
 - `iou_thresh` (float): Minimum IOU (intersection over union) value for defining a match between the predicted and actual bounding box. 
 
-This command returns a video of the tracked blobs, where the bounding box and ID of the blobs are labelled. The output videos are suffixed with `_blobbed.mp4`. It also returns a csv file of each blob's data for each frame. The output csv files are suffixed with `_blobbed.csv`.  
-
-
-TODO: Reformat the remaining scripts to click-style commands and update docs here
+This command returns a video of the tracked blobs, where the bounding box and ID of the blobs are labelled. The output videos are suffixed with `_blobbed.mp4`. It also returns a csv file of each blob's data for each frame. The output csv files are suffixed with `_blobbed.csv`.
+</details>

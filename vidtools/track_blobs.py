@@ -409,8 +409,8 @@ def main(config):
 
     if Path(root).is_dir():
 
-        vids = [str(path.absolute()) for path in Path(root).rglob(vid_ending) 
-                if "_blobbed" not in str(path.absolute())]
+        vids = sorted([str(path.absolute()) for path in Path(root).rglob(vid_ending) 
+                      if "_blobbed" not in str(path.absolute())])
 
         if len(vids) == 0:
             raise ValueError("\nNo untracked videos ending with '.mp4' were found.")
