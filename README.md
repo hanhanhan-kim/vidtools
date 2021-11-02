@@ -201,7 +201,7 @@ Its `.yaml` parameters are:
 
 - `do_ask` (boolean): If true, will ask the user at every step to verify that the extracted frames are suitable images in which to search for circles. 
 
-This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. 
+This command returns a `.pkl` file that ends in `_circle.pkl`, for each `.mp4` video. The `.pkl` file contains the Cartesian pixel coordinates of the mean circle's center and the pixel radius of the mean circle. The command also returns videos that are both masked and cropped, based on each video's identified circle. These videos end in the `_masked.mp4` suffix.
 </details>
 
 
