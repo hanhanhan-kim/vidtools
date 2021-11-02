@@ -100,17 +100,16 @@ def make_timelapse(config):
     click.echo("\nGenerating timelapse ...")
     make_timelapse.main(config)
 
-# TODO: Rename this command to something like ... circle-mask-and-crop
 @cli.command()
 @pass_config
-@docstring_parameter(docstrings["find-circle"])
-def find_circle(config):
+@docstring_parameter(docstrings["circular-mask-crop"])
+def circular_mask_crop(config):
     """
     {0}
     """
-    from vidtools import find_circle
-    click.echo("\nFinding circles ...")
-    find_circle.main(config)
+    from vidtools import circular_mask_crop
+    click.echo("\nFinding circles for masking and cropping ...")
+    circular_mask_crop.main(config)
 
 @cli.command()
 @pass_config

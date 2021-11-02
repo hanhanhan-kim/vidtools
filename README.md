@@ -172,12 +172,12 @@ This command returns the ratio of pixels to real-world units in a `pxls_to_mm.pk
 </details>
 
 
-#### `find-circle`
+#### `circular-mask-crop`
 
 <details><summary> Click for details. </summary>
 <br>
 
-This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a _single_ mean circle for each undistorted video, in a directory of undistorted `.mp4` videos. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. 
+This command uses a [Hough Circle Transform](https://docs.opencv.org/3.4/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d) to find a _single_ mean circle for each undistorted video, in a directory of undistorted `.mp4` videos. The command then uses that circle to generate a mask, so that only those things inside the circle are visible. The command will also crop the video into a square, whose edge lengths are just slightly larger than the diameter of the identified circle. The typical use case is for identifying the boundaries of a circular arena from a behaviour video. The masking and cropping that is generated from the identified circle is useful for making clean videos for presentations, reducing input noise for various object trackers, and for accelerating the training of neural networks (e.g. object detection classifiers, etc.). 
 
 Its `.yaml` parameters are:
 
