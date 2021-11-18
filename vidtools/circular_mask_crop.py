@@ -255,17 +255,17 @@ def mask_and_crop(vid, mean_circle_info, framerate):
 # Formatted for click; config is a dict loaded from yaml:
 def main(config):
 
-    root = expanduser(config["find_circle"]["root"])
-    vid_ending = '*' + config["find_circle"]["vid_ending"]
-    framerate = int(config["find_circle"]["framerate"])
-    dp = int(config["find_circle"]["dp"])
-    param1 = int(config["find_circle"]["param1"])
-    param2 = int(config["find_circle"]["param2"])
-    minDist = int(config["find_circle"]["minDist"])
-    minRadius = int(config["find_circle"]["minRadius"])
-    maxRadius = int(config["find_circle"]["maxRadius"])
-    frames = config["find_circle"]["frames"]
-    do_ask = config["find_circle"]["do_ask"]
+    root = expanduser(config["circular_mask_crop"]["root"])
+    vid_ending = '*' + config["circular_mask_crop"]["vid_ending"]
+    framerate = int(config["circular_mask_crop"]["framerate"])
+    dp = int(config["circular_mask_crop"]["dp"])
+    param1 = int(config["circular_mask_crop"]["param1"])
+    param2 = int(config["circular_mask_crop"]["param2"])
+    minDist = int(config["circular_mask_crop"]["minDist"])
+    minRadius = int(config["circular_mask_crop"]["minRadius"])
+    maxRadius = int(config["circular_mask_crop"]["maxRadius"])
+    frames = config["circular_mask_crop"]["frames"]
+    do_ask = config["circular_mask_crop"]["do_ask"]
     
     vids = [str(path.absolute()) for path in Path(root).rglob(vid_ending) 
             if ".mp4" in str(path.absolute())]

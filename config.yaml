@@ -8,16 +8,18 @@ vid_to_imgs:
   do_overwrite: false # false
 
 h264_to_mp4:
-  root: /mnt/2TB/data_in/cashylinidae/data/point_in_sea # ~/tmp/test
+  root: /mnt/2TB/data_in/cashylinidae/data/one_vs_one/non_dalotia_aleos/cashy_3 # /mnt/2TB/data_in/cashylinidae/data/point_in_sea # ~/tmp/test
   framerate: 30
   do_mono: true # higher quality with opencv backend
 
 undistort:
+  # board: /mnt/2TB/data_in/cashylinidae/calib_files/cam/cashy_/calibration.mp4
   board: /mnt/2TB/data_in/cashylinidae/calib_files/cam/cashy_3/calibration.mp4
   framerate: 30
   m_corners: 6
   n_corners: 7
-  target: /mnt/2TB/data_in/cashylinidae/data/point_in_sea
+  # target: /mnt/2TB/data_in/cashylinidae/data/point_in_sea
+  target: /mnt/2TB/data_in/cashylinidae/data/one_vs_one/non_dalotia_aleos/cashy_3
   do_debug: false
   do_crop: true # must be true, if the output is a checkerboard vid to be used in pxls_to_real
 
@@ -30,8 +32,8 @@ pxls_to_real:
   frames: []
   do_ask: false
 
-find_circle: # TODO: Change the name of this command
-  root: /mnt/2TB/data_in/cashylinidae/data/point_in_sea
+circular_mask_crop:
+  root: /mnt/2TB/data_in/cashylinidae/data/one_vs_one/non_dalotia_aleos/cashy_3
   # root: ~/tmp/test/
   vid_ending: _undistorted.mp4
   framerate: 30
